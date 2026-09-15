@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "prices",
     "stock",
     "cart",
+    "accounts",
 ]
 
 
@@ -132,8 +133,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # DJANGO REST FRAMEWORK
 
+# DJANGO REST FRAMEWORK
+
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
     ],
 }
