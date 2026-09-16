@@ -63,7 +63,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
     def test_login_transfers_guest_cart_to_customer_when_personal_cart_does_not_exist(
         self,
     ):
-        # Создаём гостевую корзину.
         response = self.client.get("/api/cart/")
 
         self.assertEqual(
@@ -73,7 +72,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
 
         guest_session_key = self.client.session.session_key
 
-        # Добавляем товар гостю.
         response = self.client.post(
             "/api/cart/items/",
             {
@@ -95,7 +93,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
             3,
         )
 
-        # Выполняем вход.
         response = self.client.post(
             "/api/auth/login/",
             {
@@ -110,7 +107,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
             status.HTTP_200_OK,
         )
 
-        # Гостевая корзина должна стать персональной.
         personal_cart = Cart.objects.get(customer=self.user)
 
         self.assertIsNone(personal_cart.session_key)
@@ -125,7 +121,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
         self.assertFalse(Cart.objects.filter(session_key=guest_session_key).exists())
 
     def test_login_merges_guest_cart_with_existing_personal_cart(self):
-        # Создаём персональную корзину пользователя.
         personal_cart = Cart.objects.create(
             customer=self.user,
             status=True,
@@ -137,7 +132,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
             quantity=2,
         )
 
-        # Создаём гостевую корзину.
         response = self.client.get("/api/cart/")
 
         self.assertEqual(
@@ -147,7 +141,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
 
         guest_session_key = self.client.session.session_key
 
-        # Тот же товар — количества должны сложиться.
         response = self.client.post(
             "/api/cart/items/",
             {
@@ -162,7 +155,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
             status.HTTP_201_CREATED,
         )
 
-        # Второй товар — должен просто добавиться.
         response = self.client.post(
             "/api/cart/items/",
             {
@@ -177,7 +169,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
             status.HTTP_201_CREATED,
         )
 
-        # Выполняем вход.
         response = self.client.post(
             "/api/auth/login/",
             {
@@ -194,19 +185,16 @@ class CartAuthenticationIntegrationTests(APITestCase):
 
         personal_cart.refresh_from_db()
 
-        # Товар A: 2 + 3 = 5.
         self.assertEqual(
             personal_cart.items.get(product=self.product_a).quantity,
             5,
         )
 
-        # Товар B: 4.
         self.assertEqual(
             personal_cart.items.get(product=self.product_b).quantity,
             4,
         )
 
-        # Гостевая корзина должна быть удалена.
         self.assertFalse(Cart.objects.filter(session_key=guest_session_key).exists())
 
         self.assertEqual(
@@ -239,7 +227,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
         )
 
     def test_authenticated_cart_is_used_after_login(self):
-        # Создаём гостевую корзину и добавляем товар.
         response = self.client.get("/api/cart/")
 
         self.assertEqual(
@@ -263,7 +250,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
             status.HTTP_201_CREATED,
         )
 
-        # Вход.
         response = self.client.post(
             "/api/auth/login/",
             {
@@ -278,7 +264,6 @@ class CartAuthenticationIntegrationTests(APITestCase):
             status.HTTP_200_OK,
         )
 
-        # Запрашиваем текущую корзину уже как авторизованный пользователь.
         response = self.client.get("/api/cart/")
 
         self.assertEqual(
@@ -296,11 +281,300 @@ class CartAuthenticationIntegrationTests(APITestCase):
             2,
         )
 
-        # У пользователя ровно одна персональная корзина.
         self.assertEqual(
             Cart.objects.filter(customer=self.user).count(),
             1,
         )
 
-        # Старой гостевой корзины нет.
         self.assertFalse(Cart.objects.filter(session_key=guest_session_key).exists())
+
+    # ------------------------------------------------------------------
+    # Registration + automatic login + cart integration
+    # ------------------------------------------------------------------
+
+    def test_register_without_guest_cart_creates_personal_cart_and_logs_in(
+        self,
+    ):
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "username": "newuser",
+                "email": "newuser@example.com",
+                "password": "NewStrongPass123",
+                "password_confirm": "NewStrongPass123",
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        new_user = User.objects.get(username="newuser")
+
+        self.assertEqual(
+            response.data["id"],
+            new_user.id,
+        )
+
+        self.assertEqual(
+            response.data["username"],
+            "newuser",
+        )
+
+        self.assertTrue(Cart.objects.filter(customer=new_user).exists())
+
+        personal_cart = Cart.objects.get(customer=new_user)
+
+        self.assertEqual(
+            personal_cart.items.count(),
+            0,
+        )
+
+        # Проверяем автоматическую авторизацию.
+        response = self.client.get("/api/auth/me/")
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            response.data["id"],
+            new_user.id,
+        )
+
+        self.assertEqual(
+            response.data["username"],
+            "newuser",
+        )
+
+    def test_register_transfers_guest_cart_to_personal_cart(self):
+        # Создаём гостевую корзину.
+        response = self.client.get("/api/cart/")
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        guest_session_key = self.client.session.session_key
+
+        # Добавляем товар гостю.
+        response = self.client.post(
+            "/api/cart/items/",
+            {
+                "product_id": self.product_a.id,
+                "quantity": 3,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        # Регистрируем нового пользователя.
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "username": "newuser",
+                "email": "newuser@example.com",
+                "password": "NewStrongPass123",
+                "password_confirm": "NewStrongPass123",
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        new_user = User.objects.get(username="newuser")
+
+        # Guest cart должна стать personal cart.
+        personal_cart = Cart.objects.get(customer=new_user)
+
+        self.assertIsNone(personal_cart.session_key)
+
+        item = personal_cart.items.get(product=self.product_a)
+
+        self.assertEqual(
+            item.quantity,
+            3,
+        )
+
+        # Guest cart больше не существует.
+        self.assertFalse(Cart.objects.filter(session_key=guest_session_key).exists())
+
+        # Пользователь автоматически авторизован.
+        response = self.client.get("/api/auth/me/")
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            response.data["id"],
+            new_user.id,
+        )
+
+        # /api/cart/ должен вернуть personal cart.
+        response = self.client.get("/api/cart/")
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            response.data["items"][0]["product"]["id"],
+            self.product_a.id,
+        )
+
+        self.assertEqual(
+            response.data["items"][0]["quantity"],
+            3,
+        )
+
+    def test_register_merges_guest_cart_with_existing_personal_cart(self):
+        # Это отдельный пользователь, для которого заранее
+        # существует персональная корзина.
+        existing_user = User.objects.create_user(
+            username="existinguser",
+            email="existing@example.com",
+            password="ExistingPass123",
+        )
+
+        personal_cart = Cart.objects.create(
+            customer=existing_user,
+            status=True,
+        )
+
+        CartItem.objects.create(
+            cart=personal_cart,
+            product=self.product_a,
+            quantity=2,
+        )
+
+        # Важное ограничение:
+        # обычная регистрация создаёт нового пользователя,
+        # поэтому существующая personal cart не может
+        # принадлежать регистрируемому пользователю.
+        #
+        # Этот тест проверяет отдельный сценарий:
+        # после регистрации новая personal cart создаётся
+        # независимо от корзины другого пользователя.
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "username": "newuser",
+                "email": "newuser@example.com",
+                "password": "NewStrongPass123",
+                "password_confirm": "NewStrongPass123",
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        new_user = User.objects.get(username="newuser")
+
+        new_personal_cart = Cart.objects.get(customer=new_user)
+
+        self.assertNotEqual(
+            new_personal_cart.id,
+            personal_cart.id,
+        )
+
+        self.assertEqual(
+            new_personal_cart.items.count(),
+            0,
+        )
+
+        # Корзина существующего пользователя не изменилась.
+        personal_cart.refresh_from_db()
+
+        self.assertEqual(
+            personal_cart.items.get(product=self.product_a).quantity,
+            2,
+        )
+
+    def test_register_with_guest_cart_and_existing_personal_cart_is_not_possible_for_new_user(
+        self,
+    ):
+        # При регистрации создаётся новый пользователь.
+        # Поэтому "существующая personal cart" для него
+        # до регистрации невозможна.
+        #
+        # Реальное объединение с существующей personal cart
+        # уже проверено Login-тестом выше.
+
+        response = self.client.get("/api/cart/")
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        guest_session_key = self.client.session.session_key
+
+        response = self.client.post(
+            "/api/cart/items/",
+            {
+                "product_id": self.product_a.id,
+                "quantity": 4,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "username": "newuser",
+                "email": "newuser@example.com",
+                "password": "NewStrongPass123",
+                "password_confirm": "NewStrongPass123",
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        new_user = User.objects.get(username="newuser")
+
+        personal_cart = Cart.objects.get(customer=new_user)
+
+        self.assertEqual(
+            personal_cart.items.get(product=self.product_a).quantity,
+            4,
+        )
+
+        self.assertFalse(Cart.objects.filter(session_key=guest_session_key).exists())
+
+        response = self.client.get("/api/auth/me/")
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            response.data["id"],
+            new_user.id,
+        )

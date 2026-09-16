@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from .models import CustomerAddress, CustomerProfile
+
 
 User = get_user_model()
 
@@ -9,6 +11,52 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "username", "email")
+
+
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerProfile
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "middle_name",
+            "phone",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "created_at",
+            "updated_at",
+        )
+
+
+class CustomerAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerAddress
+        fields = (
+            "id",
+            "title",
+            "first_name",
+            "last_name",
+            "middle_name",
+            "phone",
+            "country",
+            "region",
+            "city",
+            "postal_code",
+            "address_line",
+            "apartment",
+            "is_default",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "created_at",
+            "updated_at",
+        )
 
 
 class RegisterSerializer(serializers.ModelSerializer):

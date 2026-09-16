@@ -3,10 +3,15 @@ from django.db import models
 from django.db.models import Q
 
 
+class CartStatus(models.TextChoices):
+    FREE = "free", "Free"
+    BUSY = "busy", "Busy"
+
+
 class Cart(models.Model):
     customer = models.OneToOneField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="cart",
@@ -17,25 +22,44 @@ class Cart(models.Model):
         blank=True,
         unique=True,
     )
-    status = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=10,
+        choices=CartStatus.choices,
+        default=CartStatus.BUSY,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = ( 
+        constraints = (
             models.CheckConstraint(
                 condition=(
-                    Q(customer__isnull=False, session_key__isnull=True)
-                    | Q(customer__isnull=True, session_key__isnull=False)
+                    Q(
+                        status=CartStatus.FREE,
+                        customer__isnull=True,
+                        session_key__isnull=True,
+                    )
+                    | Q(
+                        status=CartStatus.BUSY,
+                        customer__isnull=True,
+                        session_key__isnull=False,
+                    )
+                    | Q(
+                        status=CartStatus.BUSY,
+                        customer__isnull=False,
+                        session_key__isnull=True,
+                    )
                 ),
-                name="ck_cart_owner",
+                name="ck_cart_state",
             ),
         )
 
     def __str__(self):
         if self.customer_id:
             return f"Cart #{self.pk} — customer {self.customer_id}"
-        return f"Cart #{self.pk} — session {self.session_key}"
+        if self.session_key:
+            return f"Cart #{self.pk} — session {self.session_key}"
+        return f"Cart #{self.pk} — free"
 
 
 class CartItem(models.Model):
