@@ -17,6 +17,11 @@ class Order(models.Model):
         on_delete=models.PROTECT,
         related_name="orders",
     )
+    currency = models.ForeignKey(
+        "prices.Currency",
+        on_delete=models.PROTECT,
+        related_name="orders",
+    )
     number = models.CharField(
         max_length=30,
         unique=True,

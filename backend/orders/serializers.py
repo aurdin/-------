@@ -28,6 +28,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "id",
             "number",
             "status",
+            "currency",
             "customer_name",
             "customer_phone",
             "delivery_first_name",
