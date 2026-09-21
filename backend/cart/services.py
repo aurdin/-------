@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from cart.models import Cart, CartItem
+from cart.models import Cart, CartItem, CartStatus
 
 
 User = get_user_model()
@@ -20,15 +20,19 @@ def promote_guest_cart_to_customer(cart, customer):
 
     cart.customer = customer
     cart.session_key = None
+    cart.status = CartStatus.BUSY
+
     cart.save(
         update_fields=[
             "customer",
             "session_key",
+            "status",
             "updated_at",
         ]
     )
 
     return cart
+
 
 @transaction.atomic
 def merge_guest_cart_with_customer_cart(guest_cart, customer):
@@ -59,28 +63,42 @@ def merge_guest_cart_with_customer_cart(guest_cart, customer):
                 ]
             )
 
-    guest_cart.delete()
+    guest_cart.items.all().delete()
+
+    guest_cart.customer = None
+    guest_cart.session_key = None
+    guest_cart.status = CartStatus.FREE
+
+    guest_cart.save(
+        update_fields=[
+            "customer",
+            "session_key",
+            "status",
+            "updated_at",
+        ]
+    )
 
     return personal_cart
-# -------------------------
+
 
 @transaction.atomic
 def attach_guest_cart_to_customer(session_key, customer):
     if not session_key:
         return Cart.objects.get_or_create(
             customer=customer,
-            defaults={"status": True},
+            defaults={"status": CartStatus.BUSY},
         )[0]
 
     try:
         guest_cart = Cart.objects.get(
             session_key=session_key,
             customer__isnull=True,
+            status=CartStatus.BUSY,
         )
     except Cart.DoesNotExist:
         return Cart.objects.get_or_create(
             customer=customer,
-            defaults={"status": True},
+            defaults={"status": CartStatus.BUSY},
         )[0]
 
     if Cart.objects.filter(customer=customer).exists():

@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from cart.models import Cart, CartItem
+from cart.models import Cart, CartItem, CartStatus
 from catalog.models import Category, CategoryGroup, Group, Product, Type
 
 
@@ -51,7 +51,10 @@ class CartViewTests(TestCase):
 
         self.assertIsNone(cart.customer)
         self.assertIsNotNone(cart.session_key)
-        self.assertTrue(cart.status)
+        self.assertEqual(
+            cart.status,
+            CartStatus.BUSY,
+        )
 
         self.assertEqual(response.data["id"], cart.id)
         self.assertEqual(response.data["items"], [])
@@ -69,6 +72,24 @@ class CartViewTests(TestCase):
             second_response.data["id"],
         )
 
+    def test_guest_get_reuses_free_cart(self):
+        free_cart = Cart.objects.create(
+            status=CartStatus.FREE,
+        )
+
+        response = self.client.get("/api/cart/")
+
+        self.assertEqual(response.status_code, 200)
+
+        free_cart.refresh_from_db()
+
+        self.assertEqual(response.data["id"], free_cart.id)
+        self.assertEqual(free_cart.status, CartStatus.BUSY)
+        self.assertIsNone(free_cart.customer)
+        self.assertIsNotNone(free_cart.session_key)
+
+        self.assertEqual(Cart.objects.count(), 1)
+
     def test_authenticated_get_creates_personal_cart(self):
         self.client.force_authenticate(user=self.user)
 
@@ -84,7 +105,10 @@ class CartViewTests(TestCase):
 
         self.assertEqual(cart.customer, self.user)
         self.assertIsNone(cart.session_key)
-        self.assertTrue(cart.status)
+        self.assertEqual(
+            cart.status,
+            CartStatus.BUSY,
+        )
 
         self.assertEqual(
             first_response.data["id"],

@@ -3,30 +3,63 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from cart.models import Cart, CartItem
+from cart.models import Cart, CartItem, CartStatus
 from cart.serializers import CartItemSerializer, CartSerializer
 
 
+@transaction.atomic
 def get_current_cart(request):
     if request.user.is_authenticated:
         cart, _ = Cart.objects.get_or_create(
             customer=request.user,
-            defaults={"status": True},
+            defaults={"status": CartStatus.BUSY},
         )
         return cart
 
     if not request.session.session_key:
         request.session.create()
 
-    cart, _ = Cart.objects.get_or_create(
-        session_key=request.session.session_key,
-        defaults={"status": True},
+    session_key = request.session.session_key
+
+    cart = Cart.objects.filter(
+        session_key=session_key,
+        customer__isnull=True,
+        status=CartStatus.BUSY,
+    ).first()
+
+    if cart is not None:
+        return cart
+
+    free_cart = (
+        Cart.objects.select_for_update()
+        .filter(
+            customer__isnull=True,
+            session_key__isnull=True,
+            status=CartStatus.FREE,
+        )
+        .first()
     )
-    return cart
+
+    if free_cart is not None:
+        free_cart.session_key = session_key
+        free_cart.status = CartStatus.BUSY
+        free_cart.save(
+            update_fields=[
+                "session_key",
+                "status",
+                "updated_at",
+            ]
+        )
+        return free_cart
+
+    return Cart.objects.create(
+        session_key=session_key,
+        status=CartStatus.BUSY,
+    )
 
 
 class CartView(APIView):
-    permission_classes = (AllowAny,)  
+    permission_classes = (AllowAny,)
 
     def get(self, request):
         cart = get_current_cart(request)
@@ -40,7 +73,7 @@ class CartView(APIView):
 
 
 class CartItemView(APIView):
-    permission_classes = (AllowAny,) 
+    permission_classes = (AllowAny,)
 
     def post(self, request):
         cart = get_current_cart(request)
@@ -66,9 +99,10 @@ class CartItemView(APIView):
             CartItemSerializer(item).data,
             status=201,
         )
-#---------
+
+
 class CartItemDetailView(APIView):
-    permission_classes = (AllowAny,)  
+    permission_classes = (AllowAny,)
 
     def patch(self, request, pk):
         cart = get_current_cart(request)

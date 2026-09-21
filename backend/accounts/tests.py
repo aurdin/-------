@@ -7,7 +7,7 @@ from accounts.models import CustomerProfile, CustomerAddress
 User = get_user_model()
 
 
-class RegisterTests(APITestCase):
+class RegisterTests(APITestCase): # Регистрация тестов пользователей
     def test_register_user(self):
         response = self.client.post(
             "/api/auth/register/",
@@ -36,7 +36,7 @@ class RegisterTests(APITestCase):
 
         self.assertTrue(user.check_password("StrongPassword123!"))
 
-    def test_register_password_mismatch(self):
+    def test_register_password_mismatch(self): # Тест на несовпадение паролей при регистрации
         response = self.client.post(
             "/api/auth/register/",
             {
@@ -53,7 +53,7 @@ class RegisterTests(APITestCase):
             status.HTTP_400_BAD_REQUEST,
         )
 # ------------------------
-    def test_register_creates_customer_profile(self):
+    def test_register_creates_customer_profile(self): # Тест на создание профиля клиента при регистрации
         response = self.client.post(
             "/api/auth/register/",
             {
@@ -81,7 +81,7 @@ class RegisterTests(APITestCase):
             user,
         )
 
-class LoginTests(APITestCase):
+class LoginTests(APITestCase): # Тесты входа в систему
     def setUp(self):
         self.user = User.objects.create_user(
             username="testuser",
@@ -89,7 +89,7 @@ class LoginTests(APITestCase):
             password="StrongPassword123!",
         )
 
-    def test_login(self):
+    def test_login(self): # Тест входа в систему
         response = self.client.post(
             "/api/auth/login/",
             {
@@ -111,7 +111,7 @@ class LoginTests(APITestCase):
 
         self.assertTrue("_auth_user_id" in self.client.session)
 
-    def test_login_wrong_password(self):
+    def test_login_wrong_password(self): # Тест входа с неправильным паролем
         response = self.client.post(
             "/api/auth/login/",
             {
@@ -127,7 +127,7 @@ class LoginTests(APITestCase):
         )
 
 
-class CurrentUserTests(APITestCase):
+class CurrentUserTests(APITestCase): # Тесты текущего пользователя
     def setUp(self):
         self.user = User.objects.create_user(
             username="testuser",
@@ -135,7 +135,7 @@ class CurrentUserTests(APITestCase):
             password="StrongPassword123!",
         )
 
-    def test_me_authenticated(self):
+    def test_me_authenticated(self): # Тест получения информации о текущем пользователе
         self.client.force_authenticate(user=self.user)
 
         response = self.client.get("/api/auth/me/")
@@ -150,7 +150,7 @@ class CurrentUserTests(APITestCase):
             "testuser",
         )
 
-    def test_me_anonymous(self):
+    def test_me_anonymous(self): # Тест получения информации о анонимном пользователе
         response = self.client.get("/api/auth/me/")
 
         self.assertEqual(
@@ -159,14 +159,15 @@ class CurrentUserTests(APITestCase):
         )
 
 
-class LogoutTests(APITestCase):
-    def setUp(self):
+class LogoutTests(APITestCase): # Тесты выхода из системы
+
+    def setUp(self): # Настройка теста выхода из системы
         self.user = User.objects.create_user(
             username="testuser",
             password="StrongPassword123!",
         )
 
-    def test_logout(self):
+    def test_logout(self): # Тест выхода из системы
         self.client.login(
             username="testuser",
             password="StrongPassword123!",
@@ -186,8 +187,9 @@ class LogoutTests(APITestCase):
             status.HTTP_403_FORBIDDEN,
         )
 # ------------------------
-class CustomerProfileModelTests(APITestCase):
-    def test_customer_profile_can_be_created(self):
+class CustomerProfileModelTests(APITestCase): # Тесты модели профиля клиента
+
+    def test_customer_profile_can_be_created(self): # Тест на создание профиля клиента
         user = User.objects.create_user(
             username="profileuser",
             email="profile@example.com",
@@ -208,7 +210,7 @@ class CustomerProfileModelTests(APITestCase):
         self.assertEqual(profile.middle_name, "Иванович")
         self.assertEqual(profile.phone, "+380501234567")
 
-    def test_customer_profile_has_one_to_one_user_relation(self):
+    def test_customer_profile_has_one_to_one_user_relation(self): # Тест на наличие отношения "один к одному" с моделью пользователя
         user = User.objects.create_user(
             username="profileuser",
             password="StrongPassword123!",
@@ -220,7 +222,7 @@ class CustomerProfileModelTests(APITestCase):
 
         self.assertEqual(user.customer_profile, profile)
 
-    def test_customer_profile_optional_fields_can_be_empty(self):
+    def test_customer_profile_optional_fields_can_be_empty(self): # Тест на пустые опциональные поля профиля клиента
         user = User.objects.create_user(
             username="profileuser",
             password="StrongPassword123!",
@@ -235,7 +237,7 @@ class CustomerProfileModelTests(APITestCase):
         self.assertEqual(profile.middle_name, "")
         self.assertEqual(profile.phone, "")
 
-    def test_customer_profile_str(self):
+    def test_customer_profile_str(self): # Тест строкового представления профиля клиента
         user = User.objects.create_user(
             username="profileuser",
             password="StrongPassword123!",
@@ -250,8 +252,9 @@ class CustomerProfileModelTests(APITestCase):
             f"CustomerProfile #{profile.pk} — profileuser",
         )
 # ------------------------
-class CustomerProfileSerializerTests(APITestCase):
-    def setUp(self):
+class CustomerProfileSerializerTests(APITestCase): # Тесты сериализатора профиля клиента
+
+    def setUp(self): # Настройка теста сериализатора профиля клиента
         self.user = User.objects.create_user(
             username="profileuser",
             email="profile@example.com",
@@ -266,7 +269,7 @@ class CustomerProfileSerializerTests(APITestCase):
             phone="+380501234567",
         )
 
-    def test_customer_profile_serializer_returns_profile_data(self):
+    def test_customer_profile_serializer_returns_profile_data(self): # Тест на возврат данных профиля клиента сериализатором
         from accounts.serializers import CustomerProfileSerializer
 
         serializer = CustomerProfileSerializer(self.profile)
@@ -288,7 +291,7 @@ class CustomerProfileSerializerTests(APITestCase):
             "+380501234567",
         )
 
-    def test_customer_profile_read_only_fields(self):
+    def test_customer_profile_read_only_fields(self): # Тест на проверку полей только для чтения в сериализаторе профиля клиента
         from accounts.serializers import CustomerProfileSerializer
 
         serializer = CustomerProfileSerializer(
@@ -317,8 +320,9 @@ class CustomerProfileSerializerTests(APITestCase):
             9999,
         ) 
 # ------------------------
-class CustomerProfileAPITests(APITestCase):
-    def setUp(self):
+class CustomerProfileAPITests(APITestCase): # Тесты API профиля клиента
+
+    def setUp(self): # Настройка теста API профиля клиента
         self.user = User.objects.create_user(
             username="profileuser",
             email="profile@example.com",
@@ -333,7 +337,7 @@ class CustomerProfileAPITests(APITestCase):
             phone="+380501234567",
         )
 
-    def test_get_customer_profile_authenticated(self):
+    def test_get_customer_profile_authenticated(self): # Тест получения профиля клиента для аутентифицированного пользователя
         self.client.force_authenticate(user=self.user)
 
         response = self.client.get(
@@ -366,7 +370,7 @@ class CustomerProfileAPITests(APITestCase):
             "+380501234567",
         )
 
-    def test_get_customer_profile_anonymous(self):
+    def test_get_customer_profile_anonymous(self): # Тест получения профиля клиента для анонимного пользователя
         response = self.client.get(
             "/api/customer/profile/",
         )
@@ -376,7 +380,7 @@ class CustomerProfileAPITests(APITestCase):
             status.HTTP_403_FORBIDDEN,
         )
 
-    def test_patch_customer_profile_authenticated(self):
+    def test_patch_customer_profile_authenticated(self): # Тест обновления профиля клиента для аутентифицированного пользователя
         self.client.force_authenticate(user=self.user)
 
         response = self.client.patch(
@@ -414,7 +418,7 @@ class CustomerProfileAPITests(APITestCase):
             "+380671234567",
         )
 
-    def test_patch_customer_profile_read_only_fields(self):
+    def test_patch_customer_profile_read_only_fields(self): # Тест на проверку полей только для чтения при обновлении профиля клиента
         self.client.force_authenticate(user=self.user)
 
         original_id = self.profile.pk
@@ -457,15 +461,16 @@ class CustomerProfileAPITests(APITestCase):
             original_updated_at,
         ) 
 # ------------------------
-class CustomerAddressModelTests(APITestCase):
-    def setUp(self):
+class CustomerAddressModelTests(APITestCase): # Тесты модели адреса клиента
+
+    def setUp(self): # Настройка теста модели адреса клиента
         self.user = User.objects.create_user(
             username="addressuser",
             email="address@example.com",
             password="StrongPassword123!",
         )
 
-    def test_customer_address_can_be_created(self):
+    def test_customer_address_can_be_created(self): # Тест на создание адреса клиента
         address = CustomerAddress.objects.create(
             user=self.user,
             title="Дом",
@@ -497,7 +502,7 @@ class CustomerAddressModelTests(APITestCase):
             address.is_default,
         )
 
-    def test_customer_address_optional_fields_can_be_empty(self):
+    def test_customer_address_optional_fields_can_be_empty(self): # Тест на проверку пустых опциональных полей адреса клиента
         address = CustomerAddress.objects.create(
             user=self.user,
             first_name="Иван",
@@ -514,7 +519,7 @@ class CustomerAddressModelTests(APITestCase):
         self.assertEqual(address.postal_code, "")
         self.assertEqual(address.apartment, "")
 
-    def test_customer_can_have_multiple_addresses(self):
+    def test_customer_can_have_multiple_addresses(self): # Тест на проверку возможности иметь несколько адресов
         CustomerAddress.objects.create(
             user=self.user,
             title="Дом",
@@ -542,7 +547,7 @@ class CustomerAddressModelTests(APITestCase):
             2,
         )
 
-    def test_only_one_default_address_is_allowed(self):
+    def test_only_one_default_address_is_allowed(self): # Тест на проверку возможности иметь только один адрес по умолчанию
         first_address = CustomerAddress.objects.create(
             user=self.user,
             title="Дом",
@@ -574,7 +579,7 @@ class CustomerAddressModelTests(APITestCase):
 
         self.assertTrue(first_address.is_default)
 
-    def test_customer_address_str_with_title(self):
+    def test_customer_address_str_with_title(self): # Тест на строковое представление адреса клиента с заголовком
         address = CustomerAddress.objects.create(
             user=self.user,
             title="Дом",
@@ -591,7 +596,7 @@ class CustomerAddressModelTests(APITestCase):
             "Дом — addressuser",
         )
 
-    def test_customer_address_str_without_title(self):
+    def test_customer_address_str_without_title(self):  # Тест на строковое представление адреса клиента без заголовка
         address = CustomerAddress.objects.create(
             user=self.user,
             first_name="Иван",
@@ -607,8 +612,9 @@ class CustomerAddressModelTests(APITestCase):
             f"CustomerAddress #{address.pk} — addressuser",
         ) 
 # ------------------------
-class CustomerAddressSerializerTests(APITestCase):
-    def setUp(self):
+class CustomerAddressSerializerTests(APITestCase): # Тесты сериализатора адреса клиента
+
+    def setUp(self): # Настройка теста сериализатора адреса клиента
         self.user = User.objects.create_user(
             username="addressuser",
             email="address@example.com",
@@ -631,7 +637,7 @@ class CustomerAddressSerializerTests(APITestCase):
             is_default=True,
         )
 
-    def test_customer_address_serializer_returns_address_data(self):
+    def test_customer_address_serializer_returns_address_data(self): # Тест на возврат данных адреса клиента сериализатором
         from accounts.serializers import CustomerAddressSerializer
 
         serializer = CustomerAddressSerializer(self.address)
@@ -688,7 +694,7 @@ class CustomerAddressSerializerTests(APITestCase):
             serializer.data["is_default"],
         )
 
-    def test_customer_address_read_only_fields(self):
+    def test_customer_address_read_only_fields(self): # Тест на проверку полей только для чтения в сериализаторе адреса клиента
         from accounts.serializers import CustomerAddressSerializer
 
         original_id = self.address.pk
@@ -731,8 +737,9 @@ class CustomerAddressSerializerTests(APITestCase):
             original_updated_at,
         )
 # ------------------------
-class CustomerAddressAPITests(APITestCase):
-    def setUp(self):
+class CustomerAddressAPITests(APITestCase): # Тесты API адреса клиента
+
+    def setUp(self): # Настройка теста API адреса клиента
         self.user = User.objects.create_user(
             username="addressuser",
             email="address@example.com",
@@ -745,7 +752,7 @@ class CustomerAddressAPITests(APITestCase):
             password="StrongPassword123!",
         )
 
-    def test_list_customer_addresses_authenticated(self):
+    def test_list_customer_addresses_authenticated(self): # Тест на список адресов клиента при аутентификации
         CustomerAddress.objects.create(
             user=self.user,
             title="Дом",
@@ -791,7 +798,7 @@ class CustomerAddressAPITests(APITestCase):
             "Дом",
         )
 
-    def test_list_customer_addresses_anonymous(self):
+    def test_list_customer_addresses_anonymous(self): # Тест на список адресов клиента при анонимном доступе
         response = self.client.get(
             "/api/customer/addresses/",
         )
@@ -801,7 +808,7 @@ class CustomerAddressAPITests(APITestCase):
             status.HTTP_403_FORBIDDEN,
         )
 
-    def test_create_customer_address_authenticated(self):
+    def test_create_customer_address_authenticated(self): # Тест на создание адреса клиента при аутентификации
         self.client.force_authenticate(
             user=self.user,
         )
@@ -847,7 +854,7 @@ class CustomerAddressAPITests(APITestCase):
             "Днепр",
         )
 
-    def test_create_customer_address_anonymous(self):
+    def test_create_customer_address_anonymous(self): # Тест на создание адреса клиента при анонимном доступе
         response = self.client.post(
             "/api/customer/addresses/",
             {
@@ -867,7 +874,7 @@ class CustomerAddressAPITests(APITestCase):
             status.HTTP_403_FORBIDDEN,
         )
 
-    def test_create_default_address_removes_previous_default(self):
+    def test_create_default_address_removes_previous_default(self): # Тест на удаление предыдущего адреса по умолчанию при создании нового
         first_address = CustomerAddress.objects.create(
             user=self.user,
             title="Дом",
@@ -925,7 +932,7 @@ class CustomerAddressAPITests(APITestCase):
             1,
         )
 
-    def test_create_address_for_one_user_does_not_affect_other_user(self):
+    def test_create_address_for_one_user_does_not_affect_other_user(self): # Тест на проверку того, что создание адреса для одного пользователя не влияет на других пользователей
         other_address = CustomerAddress.objects.create(
             user=self.other_user,
             title="Другой адрес",
@@ -968,8 +975,9 @@ class CustomerAddressAPITests(APITestCase):
             other_address.is_default,
         )  
 # ------------------------
-class CustomerAddressDetailAPITests(APITestCase):
-    def setUp(self):
+class CustomerAddressDetailAPITests(APITestCase): # Тесты детального представления адреса клиента
+
+    def setUp(self): # Настройка тестов
         self.user = User.objects.create_user(
             username="addressuser",
             email="address@example.com",
@@ -1010,7 +1018,7 @@ class CustomerAddressDetailAPITests(APITestCase):
             is_default=True,
         )
 
-    def test_get_own_address(self):
+    def test_get_own_address(self): # Тест 
         self.client.force_authenticate(
             user=self.user,
         )

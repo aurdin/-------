@@ -8,6 +8,7 @@ import {
     type RegisterData,
     type User,
 } from '../api/accounts'
+import { useCartStore } from './cart'
 
 interface AuthState {
     user: User | null
@@ -53,13 +54,24 @@ export const useAuthStore = defineStore('auth', {
 
             try {
                 this.user = await register(data)
-                return this.user
             } catch (error) {
                 this.error = 'Не удалось зарегистрировать пользователя.'
                 throw error
             } finally {
                 this.loading = false
             }
+
+            const cartStore = useCartStore()
+
+            try {
+                await cartStore.fetchCart()
+            } catch {
+                // Регистрация уже успешно выполнена.
+                // Ошибка загрузки корзины не должна
+                // превращать регистрацию в ошибку.
+            }
+
+            return this.user
         },
 
         async login(data: LoginData) {
@@ -68,13 +80,24 @@ export const useAuthStore = defineStore('auth', {
 
             try {
                 this.user = await login(data)
-                return this.user
             } catch (error) {
                 this.error = 'Не удалось выполнить вход.'
                 throw error
             } finally {
                 this.loading = false
             }
+
+            const cartStore = useCartStore()
+
+            try {
+                await cartStore.fetchCart()
+            } catch {
+                // Авторизация уже успешно выполнена.
+                // Ошибка загрузки корзины не должна
+                // превращать вход в ошибку.
+            }
+
+            return this.user
         },
 
         async logout() {
@@ -89,6 +112,16 @@ export const useAuthStore = defineStore('auth', {
                 throw error
             } finally {
                 this.loading = false
+            }
+
+            const cartStore = useCartStore()
+
+            try {
+                await cartStore.fetchCart()
+            } catch {
+                // Выход уже успешно выполнен.
+                // Ошибка загрузки гостевой корзины
+                // не должна превращать выход в ошибку.
             }
         },
 

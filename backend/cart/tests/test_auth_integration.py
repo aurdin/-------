@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from catalog.models import Category, Group, Product, Type
-from cart.models import Cart, CartItem
+from cart.models import Cart, CartItem, CartStatus
 
 
 User = get_user_model()
@@ -123,7 +123,7 @@ class CartAuthenticationIntegrationTests(APITestCase):
     def test_login_merges_guest_cart_with_existing_personal_cart(self):
         personal_cart = Cart.objects.create(
             customer=self.user,
-            status=True,
+            status=CartStatus.BUSY,
         )
 
         CartItem.objects.create(
@@ -140,6 +140,8 @@ class CartAuthenticationIntegrationTests(APITestCase):
         )
 
         guest_session_key = self.client.session.session_key
+
+        guest_cart = Cart.objects.get(session_key=guest_session_key)
 
         response = self.client.post(
             "/api/cart/items/",
@@ -195,12 +197,23 @@ class CartAuthenticationIntegrationTests(APITestCase):
             4,
         )
 
-        self.assertFalse(Cart.objects.filter(session_key=guest_session_key).exists())
+        guest_cart.refresh_from_db()
+
+        self.assertEqual(
+            guest_cart.status,
+            CartStatus.FREE,
+        )
+        self.assertIsNone(guest_cart.customer)
+        self.assertIsNone(guest_cart.session_key)
+        self.assertEqual(
+            guest_cart.items.count(),
+            0,
+        )
 
         self.assertEqual(
             personal_cart.items.count(),
             2,
-        )
+        )        
 
     def test_login_without_guest_cart_creates_personal_cart(self):
         response = self.client.post(
@@ -452,7 +465,7 @@ class CartAuthenticationIntegrationTests(APITestCase):
 
         personal_cart = Cart.objects.create(
             customer=existing_user,
-            status=True,
+            status=CartStatus.BUSY,
         )
 
         CartItem.objects.create(

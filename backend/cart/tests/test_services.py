@@ -1,82 +1,196 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from cart.models import Cart, CartItem
+from cart.models import Cart, CartItem, CartStatus
 from cart.services import (
+    attach_guest_cart_to_customer,
     merge_guest_cart_with_customer_cart,
     promote_guest_cart_to_customer,
 )
-from catalog.models import Category, CategoryGroup, Group, Product, Type
+from catalog.models import (
+    Category,
+    CategoryGroup,
+    Group,
+    Product,
+    Type,
+)
 
 
-class PromoteGuestCartToCustomerTests(TestCase):
-    def setUp(self):
-        self.user = get_user_model().objects.create_user(
-            username="service-user",
-            password="test-password-123",
+User = get_user_model()
+
+
+class CartServicesTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # --------------------------------------------------------------
+        # Catalog test data
+        # --------------------------------------------------------------
+
+        cls.category = Category.objects.create(
+            name="Тестовая категория",
         )
 
-        self.category = Category.objects.create(
-            name="Test category",
-        )
-
-        self.group = Group.objects.create(
-            name="Test group",
+        cls.group = Group.objects.create(
+            name="Тестовая группа",
         )
 
         CategoryGroup.objects.create(
-            category=self.category,
-            group=self.group,
+            category=cls.category,
+            group=cls.group,
         )
 
-        self.type = Type.objects.create(
-            name="Test type",
+        cls.type_1 = Type.objects.create(
+            name="Тестовый тип",
         )
 
-        self.product = Product.objects.create(
-            article="TEST-SERVICE-001",
-            category=self.category,
-            group=self.group,
-            type=self.type,
-            sales_unit="шт",
-            status=True,
+        cls.type_2 = Type.objects.create(
+            name="Тестовый тип 2",
         )
 
-    def test_guest_cart_becomes_personal_cart(self):
-        cart = Cart.objects.create(
-            session_key="guest-session-123",
-            status=True,
+        cls.product_1 = Product.objects.create(
+            article="TEST-CART-001",
+            category=cls.category,
+            group=cls.group,
+            type=cls.type_1,
+            sales_unit="шт.",
         )
 
-        item = CartItem.objects.create(
+        cls.product_2 = Product.objects.create(
+            article="TEST-CART-002",
+            category=cls.category,
+            group=cls.group,
+            type=cls.type_2,
+            sales_unit="шт.",
+        )
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def create_user(self, username):
+        return User.objects.create_user(
+            username=username,
+            password="testpassword123",
+        )
+
+    def create_guest_cart(self, session_key):
+        return Cart.objects.create(
+            session_key=session_key,
+            status=CartStatus.BUSY,
+        )
+
+    def create_customer_cart(self, customer):
+        return Cart.objects.create(
+            customer=customer,
+            status=CartStatus.BUSY,
+        )
+
+    def add_item(self, cart, product, quantity):
+        return CartItem.objects.create(
             cart=cart,
-            product=self.product,
-            quantity=3,
+            product=product,
+            quantity=quantity,
         )
 
-        cart_id = cart.id
+    # ------------------------------------------------------------------
+    # promote_guest_cart_to_customer
+    # ------------------------------------------------------------------
+
+    def test_promote_guest_cart_to_customer(self):
+        customer = self.create_user(
+            "promote-user-001",
+        )
+
+        guest_cart = self.create_guest_cart(
+            "promote-session-001",
+        )
+
+        self.add_item(
+            guest_cart,
+            self.product_1,
+            3,
+        )
 
         result = promote_guest_cart_to_customer(
-            cart,
-            self.user,
+            guest_cart,
+            customer,
         )
 
-        result.refresh_from_db()
-        item.refresh_from_db()
+        guest_cart.refresh_from_db()
 
-        self.assertEqual(result.id, cart_id)
-        self.assertEqual(result.customer, self.user)
-        self.assertIsNone(result.session_key)
-        self.assertTrue(result.status)
+        self.assertEqual(
+            result.pk,
+            guest_cart.pk,
+        )
 
-        self.assertEqual(item.cart_id, cart_id)
-        self.assertEqual(item.product, self.product)
-        self.assertEqual(item.quantity, 3)
+        self.assertEqual(
+            guest_cart.customer,
+            customer,
+        )
 
-    def test_cannot_promote_personal_cart(self):
-        cart = Cart.objects.create(
-            customer=self.user,
-            status=True,
+        self.assertIsNone(
+            guest_cart.session_key,
+        )
+
+        self.assertEqual(
+            guest_cart.status,
+            CartStatus.BUSY,
+        )
+
+        self.assertTrue(
+            CartItem.objects.filter(
+                cart=guest_cart,
+                product=self.product_1,
+                quantity=3,
+            ).exists()
+        )
+
+    def test_promote_empty_guest_cart_to_customer(self):
+        customer = self.create_user(
+            "promote-user-002",
+        )
+
+        guest_cart = self.create_guest_cart(
+            "promote-session-002",
+        )
+
+        result = promote_guest_cart_to_customer(
+            guest_cart,
+            customer,
+        )
+
+        guest_cart.refresh_from_db()
+
+        self.assertEqual(
+            result.pk,
+            guest_cart.pk,
+        )
+
+        self.assertEqual(
+            guest_cart.customer,
+            customer,
+        )
+
+        self.assertIsNone(
+            guest_cart.session_key,
+        )
+
+        self.assertEqual(
+            guest_cart.status,
+            CartStatus.BUSY,
+        )
+
+    def test_promote_cart_already_belongs_to_customer_raises_error(self):
+        customer_1 = self.create_user(
+            "promote-user-003",
+        )
+
+        customer_2 = self.create_user(
+            "promote-user-004",
+        )
+
+        cart = self.create_customer_cart(
+            customer_1,
         )
 
         with self.assertRaisesMessage(
@@ -85,18 +199,40 @@ class PromoteGuestCartToCustomerTests(TestCase):
         ):
             promote_guest_cart_to_customer(
                 cart,
-                self.user,
+                customer_2,
             )
 
-    def test_cannot_promote_if_customer_already_has_personal_cart(self):
-        Cart.objects.create(
-            customer=self.user,
-            status=True,
+    def test_promote_cart_without_session_key_raises_error(self):
+        customer = self.create_user(
+            "promote-user-005",
         )
 
-        guest_cart = Cart.objects.create(
-            session_key="guest-session-789",
-            status=True,
+        cart = self.create_guest_cart(
+            "promote-session-005",
+        )
+
+        cart.session_key = None
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Cart is not a guest cart.",
+        ):
+            promote_guest_cart_to_customer(
+                cart,
+                customer,
+            )   
+
+    def test_promote_when_customer_already_has_cart_raises_error(self):
+        customer = self.create_user(
+            "promote-user-006",
+        )
+
+        self.create_customer_cart(
+            customer,
+        )
+
+        guest_cart = self.create_guest_cart(
+            "promote-session-006",
         )
 
         with self.assertRaisesMessage(
@@ -105,181 +241,225 @@ class PromoteGuestCartToCustomerTests(TestCase):
         ):
             promote_guest_cart_to_customer(
                 guest_cart,
-                self.user,
+                customer,
             )
 
+    # ------------------------------------------------------------------
+    # merge_guest_cart_with_customer_cart
+    # ------------------------------------------------------------------
+
+    def test_merge_guest_cart_into_customer_cart(self):
+        customer = self.create_user(
+            "merge-user-001",
+        )
+
+        personal_cart = self.create_customer_cart(
+            customer,
+        )
+
+        guest_cart = self.create_guest_cart(
+            "merge-session-001",
+        )
+
+        self.add_item(
+            guest_cart,
+            self.product_1,
+            2,
+        )
+
+        result = merge_guest_cart_with_customer_cart(
+            guest_cart,
+            customer,
+        )
+
+        personal_cart.refresh_from_db()
         guest_cart.refresh_from_db()
 
-        self.assertIsNone(guest_cart.customer)
         self.assertEqual(
+            result.pk,
+            personal_cart.pk,
+        )
+
+        item = CartItem.objects.get(
+            cart=personal_cart,
+            product=self.product_1,
+        )
+
+        self.assertEqual(
+            item.quantity,
+            2,
+        )
+
+        self.assertEqual(
+            guest_cart.items.count(),
+            0,
+        )
+
+        self.assertIsNone(
+            guest_cart.customer,
+        )
+
+        self.assertIsNone(
             guest_cart.session_key,
-            "guest-session-789",
         )
 
-    def test_merge_same_product_sums_quantities(self):
-        personal_cart = Cart.objects.create(
-            customer=self.user,
-            status=True,
+        self.assertEqual(
+            guest_cart.status,
+            CartStatus.FREE,
         )
 
-        guest_cart = Cart.objects.create(
-            session_key="guest-merge-001",
-            status=True,
+    def test_merge_same_product_adds_quantities(self):
+        customer = self.create_user(
+            "merge-user-002",
         )
 
-        CartItem.objects.create(
-            cart=personal_cart,
-            product=self.product,
-            quantity=3,
+        personal_cart = self.create_customer_cart(
+            customer,
         )
 
-        CartItem.objects.create(
-            cart=guest_cart,
-            product=self.product,
-            quantity=2,
+        guest_cart = self.create_guest_cart(
+            "merge-session-002",
         )
 
-        result = merge_guest_cart_with_customer_cart(
+        self.add_item(
+            personal_cart,
+            self.product_1,
+            5,
+        )
+
+        self.add_item(
             guest_cart,
-            self.user,
-        )
-
-        result.refresh_from_db()
-
-        item = CartItem.objects.get(
-            cart=personal_cart,
-            product=self.product,
-        )
-
-        self.assertEqual(result.id, personal_cart.id)
-        self.assertEqual(item.quantity, 5)
-        self.assertFalse(Cart.objects.filter(pk=guest_cart.id).exists())
-
-    def test_merge_moves_product_only_from_guest_cart(self):
-        personal_cart = Cart.objects.create(
-            customer=self.user,
-            status=True,
-        )
-
-        guest_cart = Cart.objects.create(
-            session_key="guest-merge-002",
-            status=True,
-        )
-
-        CartItem.objects.create(
-            cart=guest_cart,
-            product=self.product,
-            quantity=4,
-        )
-
-        result = merge_guest_cart_with_customer_cart(
-            guest_cart,
-            self.user,
-        )
-
-        item = CartItem.objects.get(
-            cart=personal_cart,
-            product=self.product,
-        )
-
-        self.assertEqual(result.id, personal_cart.id)
-        self.assertEqual(item.quantity, 4)
-        self.assertFalse(Cart.objects.filter(pk=guest_cart.id).exists())
-
-    def test_merge_preserves_product_only_in_personal_cart(self):
-        personal_cart = Cart.objects.create(
-            customer=self.user,
-            status=True,
-        )
-
-        guest_cart = Cart.objects.create(
-            session_key="guest-merge-003",
-            status=True,
-        )
-
-        CartItem.objects.create(
-            cart=personal_cart,
-            product=self.product,
-            quantity=7,
-        )
-
-        result = merge_guest_cart_with_customer_cart(
-            guest_cart,
-            self.user,
-        )
-
-        item = CartItem.objects.get(
-            cart=personal_cart,
-            product=self.product,
-        )
-
-        self.assertEqual(result.id, personal_cart.id)
-        self.assertEqual(item.quantity, 7)
-        self.assertFalse(Cart.objects.filter(pk=guest_cart.id).exists())
-
-    def test_merge_deletes_guest_cart(self):
-        Cart.objects.create(
-        customer=self.user,
-            status=True,
-        )
-
-        guest_cart = Cart.objects.create(
-            session_key="guest-merge-004",
-            status=True,
-        )
-
-        guest_cart_id = guest_cart.id
-
-        CartItem.objects.create(
-            cart=guest_cart,
-            product=self.product,
-            quantity=2,
+            self.product_1,
+            3,
         )
 
         merge_guest_cart_with_customer_cart(
             guest_cart,
-            self.user,
+            customer,
         )
 
-        self.assertFalse(Cart.objects.filter(pk=guest_cart_id).exists())
-        self.assertEqual(Cart.objects.count(), 1)
-
-    def test_merge_preserves_personal_cart_id(self):
-        personal_cart = Cart.objects.create(
-            customer=self.user,
-            status=True,
+        item = CartItem.objects.get(
+            cart=personal_cart,
+            product=self.product_1,
         )
 
-        guest_cart = Cart.objects.create(
-            session_key="guest-merge-005",
-            status=True,
+        self.assertEqual(
+            item.quantity,
+            8,
         )
 
-        personal_cart_id = personal_cart.id
+        self.assertEqual(
+            CartItem.objects.filter(
+                cart=personal_cart,
+                product=self.product_1,
+            ).count(),
+            1,
+        )
 
-        CartItem.objects.create(
-            cart=guest_cart,
-            product=self.product,
-            quantity=2,
+    def test_merge_different_products_moves_all_items(self):
+        customer = self.create_user(
+            "merge-user-003",
+        )
+
+        personal_cart = self.create_customer_cart(
+            customer,
+        )
+
+        guest_cart = self.create_guest_cart(
+            "merge-session-003",
+        )
+
+        self.add_item(
+            personal_cart,
+            self.product_1,
+            2,
+        )
+
+        self.add_item(
+            guest_cart,
+            self.product_2,
+            7,
+        )
+
+        merge_guest_cart_with_customer_cart(
+            guest_cart,
+            customer,
+        )
+
+        self.assertTrue(
+            CartItem.objects.filter(
+                cart=personal_cart,
+                product=self.product_1,
+                quantity=2,
+            ).exists()
+        )
+
+        self.assertTrue(
+            CartItem.objects.filter(
+                cart=personal_cart,
+                product=self.product_2,
+                quantity=7,
+            ).exists()
+        )
+
+        self.assertEqual(
+            guest_cart.items.count(),
+            0,
+        )
+
+    def test_merge_empty_guest_cart(self):
+        customer = self.create_user(
+            "merge-user-004",
+        )
+
+        personal_cart = self.create_customer_cart(
+            customer,
+        )
+
+        guest_cart = self.create_guest_cart(
+            "merge-session-004",
         )
 
         result = merge_guest_cart_with_customer_cart(
             guest_cart,
-            self.user,
+            customer,
         )
 
-        self.assertEqual(result.id, personal_cart_id)
-        self.assertTrue(
-            Cart.objects.filter(
-                pk=personal_cart_id,
-                customer=self.user,
-            ).exists()
+        self.assertEqual(
+            result.pk,
+            personal_cart.pk,
         )
-# -------------------------
-    def test_merge_rejects_personal_cart(self):
-        personal_cart = Cart.objects.create(
-            customer=self.user,
-            status=True,
+
+        guest_cart.refresh_from_db()
+
+        self.assertIsNone(
+            guest_cart.customer,
+        )
+
+        self.assertIsNone(
+            guest_cart.session_key,
+        )
+
+        self.assertEqual(
+            guest_cart.status,
+            CartStatus.FREE,
+        )
+
+    def test_merge_cart_already_belongs_to_customer_raises_error(self):
+        customer = self.create_user(
+            "merge-user-005",
+        )
+
+        self.create_customer_cart(
+            customer,
+        )
+
+        other_customer = self.create_user(
+            "merge-other-user-005",
+        )
+
+        guest_cart = self.create_customer_cart(
+            other_customer,
         )
 
         with self.assertRaisesMessage(
@@ -287,20 +467,41 @@ class PromoteGuestCartToCustomerTests(TestCase):
             "Cart already belongs to a customer.",
         ):
             merge_guest_cart_with_customer_cart(
-                personal_cart,
-                self.user,
+                guest_cart,
+                customer,
             )
 
-    def test_merge_rejects_customer_without_personal_cart(self):
-        guest_cart = Cart.objects.create(
-            session_key="guest-merge-error-001",
-            status=True,
+    def test_merge_cart_without_session_key_raises_error(self):
+        customer = self.create_user(
+            "merge-user-006",
         )
 
-        CartItem.objects.create(
-            cart=guest_cart,
-            product=self.product,
-            quantity=3,
+        self.create_customer_cart(
+            customer,
+        )
+
+        guest_cart = self.create_guest_cart(
+            "merge-session-006",
+        )
+
+        guest_cart.session_key = None
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Cart is not a guest cart.",
+        ):
+            merge_guest_cart_with_customer_cart(
+                guest_cart,
+                customer,
+            )
+
+    def test_merge_when_customer_has_no_personal_cart_raises_error(self):
+        customer = self.create_user(
+            "merge-user-007",
+        )
+
+        guest_cart = self.create_guest_cart(
+            "merge-session-007",
         )
 
         with self.assertRaisesMessage(
@@ -309,40 +510,247 @@ class PromoteGuestCartToCustomerTests(TestCase):
         ):
             merge_guest_cart_with_customer_cart(
                 guest_cart,
-                self.user,
+                customer,
             )
+
+    # ------------------------------------------------------------------
+    # attach_guest_cart_to_customer
+    # ------------------------------------------------------------------
+
+    def test_attach_without_session_key_creates_customer_cart(self):
+        customer = self.create_user(
+            "attach-user-001",
+        )
+
+        result = attach_guest_cart_to_customer(
+            None,
+            customer,
+        )
+
+        self.assertEqual(
+            result.customer,
+            customer,
+        )
+
+        self.assertEqual(
+            result.status,
+            CartStatus.BUSY,
+        )
+
+    def test_attach_empty_session_key_creates_customer_cart(self):
+        customer = self.create_user(
+            "attach-user-002",
+        )
+
+        result = attach_guest_cart_to_customer(
+            "",
+            customer,
+        )
+
+        self.assertEqual(
+            result.customer,
+            customer,
+        )
+
+        self.assertEqual(
+            result.status,
+            CartStatus.BUSY,
+        )
+
+    def test_attach_guest_cart_promotes_it_when_customer_has_no_cart(self):
+        customer = self.create_user(
+            "attach-user-003",
+        )
+
+        guest_cart = self.create_guest_cart(
+            "attach-session-003",
+        )
+
+        self.add_item(
+            guest_cart,
+            self.product_1,
+            4,
+        )
+
+        result = attach_guest_cart_to_customer(
+            "attach-session-003",
+            customer,
+        )
 
         guest_cart.refresh_from_db()
 
-        self.assertIsNone(guest_cart.customer)
         self.assertEqual(
+            result.pk,
+            guest_cart.pk,
+        )
+
+        self.assertEqual(
+            guest_cart.customer,
+            customer,
+        )
+
+        self.assertIsNone(
             guest_cart.session_key,
-            "guest-merge-error-001",
         )
 
-        item = CartItem.objects.get(cart=guest_cart)
-
-        self.assertEqual(item.product, self.product)
-        self.assertEqual(item.quantity, 3)
-
-    def test_merge_error_does_not_delete_guest_cart(self):
-        guest_cart = Cart.objects.create(
-            session_key="guest-merge-error-002",
-            status=True,
+        self.assertTrue(
+            CartItem.objects.filter(
+                cart=guest_cart,
+                product=self.product_1,
+                quantity=4,
+            ).exists()
         )
 
-        guest_cart_id = guest_cart.id
+    def test_attach_guest_cart_merges_when_customer_already_has_cart(self):
+        customer = self.create_user(
+            "attach-user-004",
+        )
 
-        with self.assertRaisesMessage(
-            ValueError,
-            "Customer does not have a personal cart.",
-        ):
-            merge_guest_cart_with_customer_cart(
-                guest_cart,
-                self.user,
-            )
+        personal_cart = self.create_customer_cart(
+            customer,
+        )
 
-        self.assertTrue(Cart.objects.filter(pk=guest_cart_id).exists())
-# --------------------------
+        guest_cart = self.create_guest_cart(
+            "attach-session-004",
+        )
 
+        self.add_item(
+            personal_cart,
+            self.product_1,
+            2,
+        )
 
+        self.add_item(
+            guest_cart,
+            self.product_1,
+            3,
+        )
+
+        self.add_item(
+            guest_cart,
+            self.product_2,
+            5,
+        )
+
+        result = attach_guest_cart_to_customer(
+            "attach-session-004",
+            customer,
+        )
+
+        personal_cart.refresh_from_db()
+        guest_cart.refresh_from_db()
+
+        self.assertEqual(
+            result.pk,
+            personal_cart.pk,
+        )
+
+        item_1 = CartItem.objects.get(
+            cart=personal_cart,
+            product=self.product_1,
+        )
+
+        item_2 = CartItem.objects.get(
+            cart=personal_cart,
+            product=self.product_2,
+        )
+
+        self.assertEqual(
+            item_1.quantity,
+            5,
+        )
+
+        self.assertEqual(
+            item_2.quantity,
+            5,
+        )
+
+        self.assertEqual(
+            guest_cart.items.count(),
+            0,
+        )
+
+        self.assertIsNone(
+            guest_cart.customer,
+        )
+
+        self.assertIsNone(
+            guest_cart.session_key,
+        )
+
+        self.assertEqual(
+            guest_cart.status,
+            CartStatus.FREE,
+        )
+
+    def test_attach_unknown_session_creates_customer_cart(self):
+        customer = self.create_user(
+            "attach-user-005",
+        )
+
+        result = attach_guest_cart_to_customer(
+            "unknown-session-005",
+            customer,
+        )
+
+        self.assertEqual(
+            result.customer,
+            customer,
+        )
+
+        self.assertEqual(
+            result.status,
+            CartStatus.BUSY,
+        )
+
+    def test_attach_existing_guest_cart_does_not_create_second_cart(self):
+        customer = self.create_user(
+            "attach-user-006",
+        )
+
+        guest_cart = self.create_guest_cart(
+            "attach-session-006",
+        )
+
+        result = attach_guest_cart_to_customer(
+            "attach-session-006",
+            customer,
+        )
+
+        self.assertEqual(
+            Cart.objects.filter(
+                customer=customer,
+            ).count(),
+            1,
+        )
+
+        self.assertEqual(
+            result.pk,
+            guest_cart.pk,
+        )
+
+    def test_attach_without_session_returns_existing_customer_cart(self):
+        customer = self.create_user(
+            "attach-user-007",
+        )
+
+        existing_cart = self.create_customer_cart(
+            customer,
+        )
+
+        result = attach_guest_cart_to_customer(
+            None,
+            customer,
+        )
+
+        self.assertEqual(
+            result.pk,
+            existing_cart.pk,
+        )
+
+        self.assertEqual(
+            Cart.objects.filter(
+                customer=customer,
+            ).count(),
+            1,
+        )
