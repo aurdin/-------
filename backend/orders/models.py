@@ -78,7 +78,17 @@ class Order(models.Model):
         max_digits=12,
         decimal_places=2,
     )
-    discount_total = models.DecimalField(
+    product_discount_total = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
+    order_discount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
+    promotion_discount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
@@ -98,20 +108,36 @@ class Order(models.Model):
     class Meta:
         constraints = (
             models.CheckConstraint(
-                condition=Q(subtotal__gt=0),
-                name="ck_order_subtotal_positive",
+                condition=Q(subtotal__gte=0),
+                name="ck_order_subtotal_nonnegative",
             ),
             models.CheckConstraint(
-                condition=Q(discount_total__gte=0),
-                name="ck_order_discount_nonnegative",
+                condition=Q(product_discount_total__gte=0),
+                name="ck_order_product_discount_nonnegative",
             ),
             models.CheckConstraint(
-                condition=Q(total__gt=0),
-                name="ck_order_total_positive",
+                condition=Q(order_discount__gte=0),
+                name="ck_order_order_discount_nonnegative",
             ),
             models.CheckConstraint(
-                condition=Q(discount_total__lte=models.F("subtotal")),
-                name="ck_order_discount_lte_subtotal",
+                condition=Q(promotion_discount__gte=0),
+                name="ck_order_promotion_discount_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(order_discount__gte=0)
+                    & Q(promotion_discount__gte=0)
+                    & Q(
+                        order_discount__lte=(
+                            models.F("subtotal") - models.F("promotion_discount")
+                        )
+                    )
+                ),
+                name="ck_order_final_discount_lte_subtotal",
+            ),
+            models.CheckConstraint(
+                condition=Q(total__gte=0),
+                name="ck_order_total_nonnegative",
             ),
         )
 
@@ -167,14 +193,12 @@ class OrderItem(models.Model):
                 name="ck_order_item_discount_nonnegative",
             ),
             models.CheckConstraint(
-                condition=Q(total__gt=0),
-                name="ck_order_item_total_positive",
+                condition=Q(total__gte=0),
+                name="ck_order_item_total_nonnegative",
             ),
             models.CheckConstraint(
-                condition=Q(
-                    discount__lte=models.F("unit_price") * models.F("quantity")
-                ),
-                name="ck_order_item_discount_lte_subtotal",
+                condition=Q(discount__lte=models.F("unit_price")),
+                name="ck_order_item_discount_lte_unit_price",
             ),
             models.UniqueConstraint(
                 fields=("order", "product"),

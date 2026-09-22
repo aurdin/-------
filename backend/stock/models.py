@@ -1,3 +1,4 @@
+# Модуль учета акций и скидок
 from django.core.validators import MinValueValidator
 from django.db import models
 

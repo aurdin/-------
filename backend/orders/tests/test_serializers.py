@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from orders.models import OrderItem, Order
+from orders.models import Order, OrderItem
 from orders.serializers import OrderItemSerializer, OrderSerializer
 from tests.factories import (
     create_category,
@@ -14,6 +14,7 @@ from tests.factories import (
     create_user,
 )
 
+
 class OrderSerializerTest(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -22,13 +23,22 @@ class OrderSerializerTest(TestCase):
             password="test-password-123",
         )
         cls.currency = create_currency()
-        cls.category = create_category(name="Для дома")
-        cls.group = create_group(name="Электроустановочные изделия")
+
+        cls.category = create_category(
+            name="Для дома",
+        )
+        cls.group = create_group(
+            name="Электроустановочные изделия",
+        )
         create_category_group(
             category=cls.category,
             group=cls.group,
         )
-        cls.type = create_type(name="Вилка")
+
+        cls.type = create_type(
+            name="Вилка",
+        )
+
         cls.product = create_product(
             article="TEST-SERIALIZER-001",
             category=cls.category,
@@ -53,7 +63,9 @@ class OrderSerializerTest(TestCase):
             delivery_address_line="ул. Тестовая, 1",
             delivery_apartment="10",
             subtotal=Decimal("500.00"),
-            discount_total=Decimal("50.00"),
+            product_discount_total=Decimal("0.00"),
+            order_discount=Decimal("50.00"),
+            promotion_discount=Decimal("0.00"),
             total=Decimal("450.00"),
         )
 
@@ -65,33 +77,50 @@ class OrderSerializerTest(TestCase):
             quantity=2,
             unit_price=Decimal("250.00"),
             discount=Decimal("50.00"),
-            total=Decimal("450.00"),
+            total=Decimal("400.00"),
         )
-        def test_order_item_serializer(self):  # Тест поля items в сериализаторе Order
-            serializer = OrderItemSerializer(self.item)
-            data = serializer.data
 
-            self.assertEqual(data["product"], self.product.id)
-            self.assertEqual(data["article"], self.product.article)
-            self.assertEqual(data["product_name"], "Тестовая вилка")
-            self.assertEqual(data["quantity"], 2)
-            self.assertEqual(data["unit_price"], "250.00")
-            self.assertEqual(data["discount"], "50.00")
-            self.assertEqual(data["total"], "450.00")
+    def test_order_item_serializer(self):
+        serializer = OrderItemSerializer(self.item)
+        data = serializer.data
 
-    def test_order_serializer_contains_items(
-        self,
-    ):  # Тест того, что в сериализаторе Order поле items содержит данные о товарах
+        self.assertEqual(data["id"], self.item.id)
+        self.assertEqual(data["product"], self.product.id)
+        self.assertEqual(data["article"], self.product.article)
+        self.assertEqual(data["product_name"], "Тестовая вилка")
+        self.assertEqual(data["quantity"], 2)
+        self.assertEqual(data["unit_price"], "250.00")
+        self.assertEqual(data["discount"], "50.00")
+        self.assertEqual(data["total"], "400.00")
+
+    def test_order_serializer_contains_items(self):
         serializer = OrderSerializer(self.order)
         data = serializer.data
 
         self.assertEqual(data["id"], self.order.id)
-        self.assertEqual(data["number"], "ORD-SERIALIZER-000001")
+        self.assertEqual(
+            data["number"],
+            "ORD-SERIALIZER-000001",
+        )
         self.assertEqual(data["status"], "new")
         self.assertEqual(data["currency"], self.currency.id)
-        self.assertEqual(data["customer_name"], "Иван Иванов")
+        self.assertEqual(
+            data["customer_name"],
+            "Иван Иванов",
+        )
         self.assertEqual(data["subtotal"], "500.00")
-        self.assertEqual(data["discount_total"], "50.00")
+        self.assertEqual(
+            data["product_discount_total"],
+            "0.00",
+        )
+        self.assertEqual(
+            data["order_discount"],
+            "50.00",
+        )
+        self.assertEqual(
+            data["promotion_discount"],
+            "0.00",
+        )
         self.assertEqual(data["total"], "450.00")
 
         self.assertEqual(len(data["items"]), 1)
@@ -101,7 +130,7 @@ class OrderSerializerTest(TestCase):
         )
 
     def test_order_serializer_fields_are_read_only(self):
-        """Проверяет, что все поля сериализатора Order доступны только для чтения"""
+        """Проверяет, что все поля OrderSerializer доступны только для чтения."""
         serializer = OrderSerializer(self.order)
 
         for field_name in serializer.fields:
@@ -111,7 +140,7 @@ class OrderSerializerTest(TestCase):
             )
 
     def test_order_item_serializer_fields_are_read_only(self):
-        """Проверяет, что все поля сериализатора OrderItem доступны только для чтения"""
+        """Проверяет, что все поля OrderItemSerializer доступны только для чтения."""
         serializer = OrderItemSerializer(self.item)
 
         for field_name in serializer.fields:
@@ -121,7 +150,6 @@ class OrderSerializerTest(TestCase):
             )
 
     def test_order_serializer_handles_multiple_items(self):
-        # Тест сериализатора Order с несколькими товарами
         product_2 = create_product(
             article="TEST-SERIALIZER-002",
             category=self.category,
@@ -145,6 +173,10 @@ class OrderSerializerTest(TestCase):
 
         self.assertEqual(len(data["items"]), 2)
         self.assertEqual(
-            data["items"][0]["order"] if "order" in data["items"][0] else None,
-            None,
-        )    
+            data["items"][0]["product"],
+            self.product.id,
+        )
+        self.assertEqual(
+            data["items"][1]["product"],
+            product_2.id,
+        )
