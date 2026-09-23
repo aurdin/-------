@@ -4,6 +4,7 @@ from django.test import TestCase
 from cart.models import Cart, CartItem, CartStatus
 from cart.services import (
     attach_guest_cart_to_customer,
+    get_current_cart,
     merge_guest_cart_with_customer_cart,
     promote_guest_cart_to_customer,
 )
@@ -92,6 +93,129 @@ class CartServicesTests(TestCase):
             quantity=quantity,
         )
 
+    # ------------------------------------------------------------------
+    # get_current_cart
+    # ------------------------------------------------------------------
+
+    def test_get_current_cart_for_authenticated_user_creates_personal_cart(
+        self,
+    ):
+        customer = self.create_user(
+            "current-cart-user-001",
+        )
+
+        class Request:
+            user = customer
+
+        result = get_current_cart(Request())
+
+        self.assertEqual(
+            result.customer,
+            customer,
+        )
+
+        self.assertEqual(
+            result.status,
+            CartStatus.BUSY,
+        )
+
+        self.assertIsNone(
+            result.session_key,
+        )
+
+    def test_get_current_cart_for_guest_creates_guest_cart(self):
+        class Session:
+            session_key = "current-cart-session-001"
+
+        class User:
+            is_authenticated = False
+
+        class Request:
+            user = User()
+            session = Session()
+
+        result = get_current_cart(Request())
+
+        self.assertEqual(
+            result.session_key,
+            "current-cart-session-001",
+        )
+
+        self.assertIsNone(
+            result.customer,
+        )
+
+        self.assertEqual(
+            result.status,
+            CartStatus.BUSY,
+        )
+
+    def test_get_current_cart_for_guest_reuses_existing_cart(self):
+        guest_cart = self.create_guest_cart(
+            "current-cart-session-002",
+        )
+
+        class Session:
+            session_key = "current-cart-session-002"
+
+        class User:
+            is_authenticated = False
+
+        class Request:
+            user = User()
+            session = Session()
+
+        result = get_current_cart(Request())
+
+        self.assertEqual(
+            result.pk,
+            guest_cart.pk,
+        )
+
+        self.assertEqual(
+            Cart.objects.filter(
+                session_key="current-cart-session-002",
+            ).count(),
+            1,
+        )
+
+    def test_get_current_cart_for_guest_reuses_free_cart(self):
+        free_cart = Cart.objects.create(
+            status=CartStatus.FREE,
+        )
+
+        class Session:
+            session_key = "current-cart-session-003"
+
+        class User:
+            is_authenticated = False
+
+        class Request:
+            user = User()
+            session = Session()
+
+        result = get_current_cart(Request())
+
+        free_cart.refresh_from_db()
+
+        self.assertEqual(
+            result.pk,
+            free_cart.pk,
+        )
+
+        self.assertEqual(
+            free_cart.session_key,
+            "current-cart-session-003",
+        )
+
+        self.assertEqual(
+            free_cart.status,
+            CartStatus.BUSY,
+        )
+
+        self.assertIsNone(
+            free_cart.customer,
+        )
     # ------------------------------------------------------------------
     # promote_guest_cart_to_customer
     # ------------------------------------------------------------------

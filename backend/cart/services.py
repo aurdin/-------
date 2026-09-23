@@ -8,6 +8,58 @@ User = get_user_model()
 
 
 @transaction.atomic
+def get_current_cart(request):
+    if request.user.is_authenticated:
+        cart, _ = Cart.objects.get_or_create(
+            customer=request.user,
+            defaults={"status": CartStatus.BUSY},
+        )
+        return cart
+
+    if not request.session.session_key:
+        request.session.create()
+
+    session_key = request.session.session_key
+
+    cart = Cart.objects.filter(
+        session_key=session_key,
+        customer__isnull=True,
+        status=CartStatus.BUSY,
+    ).first()
+
+    if cart is not None:
+        return cart
+
+    free_cart = (
+        Cart.objects.select_for_update()
+        .filter(
+            customer__isnull=True,
+            session_key__isnull=True,
+            status=CartStatus.FREE,
+        )
+        .first()
+    )
+
+    if free_cart is not None:
+        free_cart.session_key = session_key
+        free_cart.status = CartStatus.BUSY
+        free_cart.save(
+            update_fields=[
+                "session_key",
+                "status",
+                "updated_at",
+            ]
+        )
+        return free_cart
+
+    return Cart.objects.create(
+        session_key=session_key,
+        status=CartStatus.BUSY,
+    )
+
+
+@transaction.atomic
+
 def promote_guest_cart_to_customer(cart, customer):
     if cart.customer_id is not None:
         raise ValueError("Cart already belongs to a customer.")
