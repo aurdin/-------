@@ -16,3 +16,4 @@ dist/
 .vscode/
 
 .DS_Store
+.tmp.driveupload
