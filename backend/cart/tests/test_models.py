@@ -1,8 +1,8 @@
-from django.contrib.auth import get_user_model
-from django.db import IntegrityError
-from django.test import TestCase
+from django.contrib.auth import get_user_model # Импортируем функцию get_user_model (получаем пользователя из настроек Django)
+from django.db import IntegrityError # Импортируем исключение IntegrityError
+from django.test import TestCase # Импортируем класс TestCase (тестовая сущность)
 
-from cart.models import Cart, CartItem
+from cart.models import Cart, CartItem # Импортируем модели Cart и CartItem
 from catalog.models import (
     Category,
     CategoryGroup,
