@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-from prices.models import Discount, Price, OrderDiscount
+from prices.models import Discount, Price, OrderDiscount, ExchangeRate, Currency
 
 def get_current_price(product, at, currency=None):
     prices = Price.objects.filter(
@@ -16,6 +16,76 @@ def get_current_price(product, at, currency=None):
 
     return prices.order_by("-valid_from").first()
 
+
+def get_current_exchange_rate(base_currency, quote_currency, at):
+    return (
+        ExchangeRate.objects.filter(
+            base_currency=base_currency,
+            quote_currency=quote_currency,
+            valid_from__lte=at,
+        )
+        .order_by("-valid_from")
+        .first()
+    )
+
+def convert_amount(amount, rate):
+    if amount < Decimal("0.00"):
+        raise ValueError("Amount cannot be negative.")
+
+    if rate <= Decimal("0.00"):
+        raise ValueError("Rate must be greater than zero.")
+
+    result = amount / rate
+    return result.quantize(Decimal("0.01"))
+
+def get_calculated_price_in_currency(product, currency, at):
+    uah_price = get_current_price(
+        product=product,
+        at=at,
+        currency=Currency.objects.get(code="UAH"),
+    )
+
+    if uah_price is None:
+        return None
+
+    discount = get_current_discount(
+        product=product,
+        at=at,
+    )
+
+    final_uah_price = calculate_final_price(
+        price=uah_price,
+        discount=discount,
+    )
+
+    if currency.code == "UAH":
+        return {
+            "price": uah_price,
+            "discount": discount,
+            "final_price": final_uah_price,
+            "exchange_rate": None,
+        }
+
+    exchange_rate = get_current_exchange_rate(
+        base_currency=uah_price.currency,
+        quote_currency=currency,
+        at=at,
+    )
+
+    if exchange_rate is None:
+        return None
+
+    final_price = convert_amount(
+        amount=final_uah_price,
+        rate=exchange_rate.rate,
+    )
+
+    return {
+        "price": uah_price,
+        "discount": discount,
+        "final_price": final_price,
+        "exchange_rate": exchange_rate,
+    }
 
 def get_current_discount(product, at):
     discounts = (

@@ -3,7 +3,6 @@ from django.db import models
 
 from catalog.models import Product
 
-
 def validate_price_amount(amount):
     if amount is None:
         raise ValidationError(
@@ -47,8 +46,7 @@ class Currency(models.Model):
 
     def __str__(self):
         return f"{self.code} — {self.name}"
-
-
+    
 class Price(models.Model):
     product = models.ForeignKey(
         Product,
@@ -87,7 +85,48 @@ class Price(models.Model):
         )
 
     def __str__(self):
-        return f"{self.product} — {self.amount} {self.currency.code}"
+        return f"{self.product} — {self.amount} {self.currency.code}"    
+    
+class ExchangeRate(models.Model):
+    base_currency = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        related_name="exchange_rates_base",
+    )
+    quote_currency = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        related_name="exchange_rates_quote",
+    )
+    rate = models.DecimalField(
+        max_digits=18,
+        decimal_places=8,
+    )
+    valid_from = models.DateTimeField()
+
+    class Meta:
+        db_table = "prices_exchange_rate"
+        constraints = (
+            models.CheckConstraint(
+                condition=models.Q(rate__gt=0),
+                name="ck_exchange_rate_positive",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(base_currency=models.F("quote_currency")),
+                name="ck_exchange_rate_different_currencies",
+            ),
+            models.UniqueConstraint(
+                fields=(
+                    "base_currency",
+                    "quote_currency",
+                    "valid_from",
+                ),
+                name="uq_exchange_rate_period",
+            ),
+        )
+
+    def __str__(self):
+        return f"{self.base_currency.code} → {self.quote_currency.code}: {self.rate}"
     
 class Discount(models.Model):
     DISCOUNT_TYPE_PERCENT = "percent"
