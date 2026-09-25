@@ -4,7 +4,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from orders.models import Order, OrderItem
-from tests.factories import (
+from orders.tests.factories import (
     create_category,
     create_category_group,
     create_currency,

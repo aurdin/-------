@@ -1,6 +1,39 @@
 from rest_framework import serializers
 
-from orders.models import Order, OrderItem
+from orders.models import Order, OrderItem, OrderStatus
+
+class CheckoutSerializer(serializers.Serializer):
+    currency = serializers.CharField(required=True)
+
+    customer_name = serializers.CharField(required=True)
+    customer_phone = serializers.CharField(required=True)
+
+    delivery_first_name = serializers.CharField(required=True)
+    delivery_last_name = serializers.CharField(required=True)
+    delivery_middle_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+    )
+    delivery_phone = serializers.CharField(required=False, allow_blank=True)
+    delivery_country = serializers.CharField(required=True)
+    delivery_region = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+    )
+    delivery_city = serializers.CharField(required=True)
+    delivery_postal_code = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+    )
+    delivery_address_line = serializers.CharField(required=True)
+    delivery_apartment = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+    )
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -51,3 +84,9 @@ class OrderSerializer(serializers.ModelSerializer):
             "items",
         )
         read_only_fields = fields
+
+class OrderStatusSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(
+        choices=OrderStatus.choices,
+        required=True,
+    )

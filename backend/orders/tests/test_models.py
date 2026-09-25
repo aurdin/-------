@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from orders.models import Order, OrderItem, OrderStatus
-from tests.factories import (
+from orders.tests.factories import (
     create_category,
     create_category_group,
     create_currency,

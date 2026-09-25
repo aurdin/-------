@@ -10,17 +10,43 @@ class OrderStatus(models.TextChoices):
     COMPLETED = "completed", "Завершён"
     CANCELLED = "cancelled", "Отменён"
 
+class OrderNumberSequence(models.Model):
+    id = models.PositiveSmallIntegerField(
+        primary_key=True,
+        default=1,
+        editable=False,
+    )
+    value = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = (
+            models.CheckConstraint(
+                condition=models.Q(value__gte=0),
+                name="ck_order_number_sequence_nonnegative",
+            ),
+        )
+
+    def __str__(self):
+        return str(self.value)
 
 class Order(models.Model):
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="orders",
+        null=True,
+        blank=True,
     )
     currency = models.ForeignKey(
         "prices.Currency",
         on_delete=models.PROTECT,
         related_name="orders",
+    )
+    exchange_rate = models.DecimalField(
+        max_digits=18,
+        decimal_places=8,
+        null=True,
+        blank=True,
     )
     number = models.CharField(
         max_length=30,
