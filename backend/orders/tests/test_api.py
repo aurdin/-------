@@ -13,6 +13,10 @@ from orders.tests.factories import (
     create_type,
     create_user,
 )
+from django.utils import timezone
+
+from cart.models import Cart, CartItem, CartStatus
+from prices.models import Currency, Discount, ExchangeRate, Price
 
 
 class OrderAPITest(TestCase):
@@ -230,3 +234,690 @@ class OrderAPITest(TestCase):
             "400.00",
         )
 
+    def test_checkout_creates_order(self):
+        """Checkout создаёт заказ из текущей корзины."""
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=timezone.now(),
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_middle_name": "Иванович",
+                "delivery_phone": "+380501234567",
+                "delivery_country": "Украина",
+                "delivery_region": "Днепропетровская область",
+                "delivery_city": "Днепр",
+                "delivery_postal_code": "49000",
+                "delivery_address_line": "ул. Тестовая, 1",
+                "delivery_apartment": "10",
+            },
+            format="json",
+        )
+        print(response.data)
+
+        self.assertEqual(response.status_code, 201)
+
+        self.assertEqual(
+            Order.objects.filter(
+                customer=self.user,
+            ).count(),
+            1,
+        )
+
+        order = Order.objects.get(
+            customer=self.user,
+        )
+
+        self.assertEqual(
+            order.currency_id,
+            self.currency.id,
+        )
+        self.assertEqual(
+            order.subtotal,
+            Decimal("200.00"),
+        )
+        self.assertEqual(
+            order.total,
+            Decimal("200.00"),
+        )
+
+        self.assertEqual(
+            order.items.count(),
+            1,
+        )
+
+        self.assertEqual(
+            order.items.get().quantity,
+            2,
+        )
+
+        cart.refresh_from_db()
+
+        self.assertEqual(
+            cart.items.count(),
+            0,
+        )
+
+    def test_checkout_allows_guest_user(self):
+        """Гость может оформить заказ."""
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=timezone.now(),
+        )
+
+        client = APIClient()
+
+        session = client.session
+        session.create()
+        session.save()
+        session_key = session.session_key
+        client.cookies["sessionid"] = session_key
+
+        cart = Cart.objects.create(
+            session_key=session_key,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=1,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_middle_name": "Иванович",
+                "delivery_phone": "+380501234567",
+                "delivery_country": "Украина",
+                "delivery_region": "Днепропетровская область",
+                "delivery_city": "Днепр",
+                "delivery_postal_code": "49000",
+                "delivery_address_line": "ул. Тестовая, 1",
+                "delivery_apartment": "10",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(response.status_code, 201)
+
+        order = Order.objects.get()
+
+        self.assertIsNone(order.customer_id)
+        self.assertEqual(
+            order.currency_id,
+            self.currency.id,
+        )
+        self.assertEqual(
+            order.total,
+            Decimal("100.00"),
+        )
+
+        cart.refresh_from_db()
+
+
+        self.assertIsNone(cart.session_key)
+        self.assertEqual(
+            cart.status,
+            CartStatus.FREE,
+        )
+        self.assertEqual(
+            cart.items.count(),
+            0,
+        )
+
+    def test_checkout_rejects_empty_cart(self):
+        """Checkout отклоняется для пустой корзины."""
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data,
+            {"detail": "Cart is empty."},
+        )
+
+        self.assertFalse(
+            Order.objects.filter(
+                customer=self.user,
+            ).exists()
+        ) 
+
+    def test_checkout_rejects_excessive_discounts(self):
+        """Checkout отклоняет скидки, превышающие остаток заказа."""
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=timezone.now(),
+        )
+
+        Discount.objects.create(
+            product=self.product,
+            type=Discount.DISCOUNT_TYPE_PERCENT,
+            value=Decimal("10.00"),
+            valid_from=timezone.now(),
+            is_active=True,
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+                "order_discount": "181.00",
+                "promotion_discount": "0.00",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data,
+            {
+                "detail": (
+                    "Order discounts exceed the remaining order amount."
+                )
+            },
+        )
+
+        self.assertFalse(
+            Order.objects.filter(
+                customer=self.user,
+            ).exists()
+        )
+
+    def test_checkout_applies_order_discount(self):
+        """Checkout применяет допустимую скидку заказа."""
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=timezone.now(),
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+                "order_discount": "20.00",
+                "promotion_discount": "0.00",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(response.status_code, 201)
+
+        order = Order.objects.get(
+            customer=self.user,
+        )
+
+        self.assertEqual(
+            order.subtotal,
+            Decimal("200.00"),
+        )
+        self.assertEqual(
+            order.product_discount_total,
+            Decimal("0.00"),
+        )
+        self.assertEqual(
+            order.order_discount,
+            Decimal("20.00"),
+        )
+        self.assertEqual(
+            order.promotion_discount,
+            Decimal("0.00"),
+        )
+        self.assertEqual(
+            order.total,
+            Decimal("180.00"),
+        ) 
+
+    def test_checkout_applies_promotion_discount(self):
+        """Checkout применяет допустимую скидку по акции."""
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=timezone.now(),
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+                "order_discount": "20.00",
+                "promotion_discount": "10.00",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(response.status_code, 201)
+
+        order = Order.objects.get(
+            customer=self.user,
+        )
+
+        self.assertEqual(
+            order.subtotal,
+            Decimal("200.00"),
+        )
+        self.assertEqual(
+            order.product_discount_total,
+            Decimal("0.00"),
+        )
+        self.assertEqual(
+            order.order_discount,
+            Decimal("20.00"),
+        )
+        self.assertEqual(
+            order.promotion_discount,
+            Decimal("10.00"),
+        )
+        self.assertEqual(
+            order.total,
+            Decimal("170.00"),
+        ) 
+
+    def test_checkout_allows_discounts_equal_to_remaining_amount(self):
+        """Checkout допускает скидки, полностью обнуляющие сумму заказа."""
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=timezone.now(),
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+                "order_discount": "150.00",
+                "promotion_discount": "50.00",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(
+            response.status_code,
+            201,
+        )
+
+        order = Order.objects.get(
+            customer=self.user,
+        )
+
+        self.assertEqual(
+            order.subtotal,
+            Decimal("200.00"),
+        )
+        self.assertEqual(
+            order.product_discount_total,
+            Decimal("0.00"),
+        )
+        self.assertEqual(
+            order.order_discount,
+            Decimal("150.00"),
+        )
+        self.assertEqual(
+            order.promotion_discount,
+            Decimal("50.00"),
+        )
+        self.assertEqual(
+            order.total,
+            Decimal("0.00"),
+        )
+    def test_checkout_rejects_negative_order_discount(self):
+        """Checkout отклоняет отрицательную скидку заказа."""
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=timezone.now(),
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+                "order_discount": "-10.00",
+                "promotion_discount": "0.00",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+        self.assertIn(
+            "order_discount",
+            response.data,
+        )
+        self.assertFalse(
+            Order.objects.filter(
+                customer=self.user,
+            ).exists(),
+        )
+
+    def test_checkout_rejects_negative_promotion_discount(self):
+        """Checkout отклоняет отрицательную скидку по акции."""
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=timezone.now(),
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": self.currency.code,
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+                "order_discount": "0.00",
+                "promotion_discount": "-10.00",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+        self.assertIn(
+            "promotion_discount",
+            response.data,
+        )
+        self.assertFalse(
+            Order.objects.filter(
+                customer=self.user,
+            ).exists(),
+        )
+
+    def test_checkout_converts_price_to_selected_currency(self):
+        """Checkout конвертирует цену товара в выбранную валюту."""
+        usd = Currency.objects.create(
+            code="USD",
+            name="US Dollar",
+            symbol="$",
+            is_active=True,
+        )
+
+        now = timezone.now()
+
+        ExchangeRate.objects.create(
+            base_currency=self.currency,
+            quote_currency=usd,
+            rate=Decimal("40.00000000"),
+            valid_from=now,
+        )
+
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=now,
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": "USD",
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+            },
+            format="json",
+        )
+
+        print(response.data)
+
+        self.assertEqual(
+            response.status_code,
+            201,
+        )
+
+        order = Order.objects.get(
+            customer=self.user,
+        )
+
+        self.assertEqual(
+            order.currency_id,
+            usd.id,
+        )
+
+        self.assertEqual(
+            order.exchange_rate,
+            Decimal("40.00000000"),
+        )
+
+        self.assertEqual(
+            order.items.get().unit_price,
+            Decimal("2.50"),
+        )

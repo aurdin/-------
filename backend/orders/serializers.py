@@ -1,9 +1,26 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from orders.models import Order, OrderItem, OrderStatus
 
 class CheckoutSerializer(serializers.Serializer):
     currency = serializers.CharField(required=True)
+    order_discount = serializers.DecimalField(
+        required=False,
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        default=Decimal("0.00"),
+    )
+
+    promotion_discount = serializers.DecimalField(
+        required=False,
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        default=Decimal("0.00"),
+    )
 
     customer_name = serializers.CharField(required=True)
     customer_phone = serializers.CharField(required=True)

@@ -5,7 +5,13 @@ from django.utils import timezone
 
 from catalog.services.product_name import ProductNameService
 from orders.models import Order, OrderItem, OrderStatus, OrderNumberSequence
-from prices.services import get_calculated_price_in_currency
+from prices.services import (
+    calculate_final_price,
+    convert_amount,
+    get_calculated_price_in_currency,
+    get_current_exchange_rate,
+)
+from prices.models import Currency
 
 
 @transaction.atomic
@@ -27,6 +33,18 @@ def create_order_from_cart(
 
     calculated_items = []
 
+    exchange_rate = None
+
+    if currency.code != "UAH":
+        exchange_rate = get_current_exchange_rate(
+            base_currency=Currency.objects.get(code="UAH"),
+            quote_currency=currency,
+            at=at,
+        )
+
+        if exchange_rate is None:
+            raise ValueError(f"No current exchange rate for currency {currency.code}.")
+
     for cart_item in cart_items:
         calculated = get_calculated_price_in_currency(
             product=cart_item.product,
@@ -41,9 +59,21 @@ def create_order_from_cart(
 
         unit_price = calculated["final_price"]
 
-        discount_amount = (
-            calculated["price"].amount - calculated["final_price"]
+        discount_amount_uah = (
+            calculated["price"].amount
+            - calculate_final_price(
+                price=calculated["price"],
+                discount=calculated["discount"],
+            )
         ).quantize(Decimal("0.01"))
+
+        if currency.code == "UAH":
+            discount_amount = discount_amount_uah
+        else:
+            discount_amount = convert_amount(
+                amount=discount_amount_uah,
+                rate=calculated["exchange_rate"].rate,
+            ).quantize(Decimal("0.01"))
 
         original_item_total = (
             calculated["price"].amount * cart_item.quantity
@@ -88,7 +118,7 @@ def create_order_from_cart(
     order = Order.objects.create(
         customer=customer,
         currency=currency,
-        exchange_rate=None,
+        exchange_rate=(exchange_rate.rate if exchange_rate is not None else None),
         number=generate_order_number(),
         status=OrderStatus.NEW,
         customer_name=order_data["customer_name"],
@@ -203,4 +233,4 @@ def generate_order_number():
     sequence.value += 1
     sequence.save(update_fields=("value",))
 
-    return f"SMEL-{today}-{sequence.value:06d}" 
+    return f"SMEL-{today}-{sequence.value:06d}"

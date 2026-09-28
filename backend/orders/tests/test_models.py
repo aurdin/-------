@@ -134,7 +134,7 @@ class OrderModelTest(TestCase):
         order = self.make_order(
             number="ORD-20260917-000006",
             subtotal=Decimal("0.00"),
-            product_discount_total=Decimal("100.00"),
+            product_discount_total=Decimal("0.00"),
             order_discount=Decimal("0.00"),
             promotion_discount=Decimal("0.00"),
             total=Decimal("0.00"),
@@ -372,3 +372,57 @@ class OrderModelTest(TestCase):
             order.delivery_address_line,
             original_delivery_address,
         )
+
+    def test_order_allows_discounts_equal_to_remaining_amount_after_product_discount(self):
+        """Order допускает скидки до остатка после товарной скидки."""
+        order = Order.objects.create(
+            customer=self.user,
+            currency=self.currency,
+            number="SMEL-TEST-001",
+            status=OrderStatus.NEW,
+            customer_name="Иван Иванов",
+            customer_phone="+380501234567",
+            delivery_first_name="Иван",
+            delivery_last_name="Иванов",
+            delivery_phone="+380501234567",
+            delivery_country="Украина",
+            delivery_city="Днепр",
+            delivery_address_line="ул. Тестовая, 1",
+            subtotal=Decimal("200.00"),
+            product_discount_total=Decimal("40.00"),
+            order_discount=Decimal("100.00"),
+            promotion_discount=Decimal("60.00"),
+            total=Decimal("0.00"),
+        )
+
+        self.assertEqual(
+            order.total,
+            Decimal("0.00"),
+        )
+
+    def test_order_rejects_discounts_exceeding_remaining_amount_after_product_discount(
+        self,
+    ):
+        """Order отклоняет скидки, превышающие остаток после товарной скидки."""
+        order = Order(
+            customer=self.user,
+            currency=self.currency,
+            number="SMEL-TEST-002",
+            status=OrderStatus.NEW,
+            customer_name="Иван Иванов",
+            customer_phone="+380501234567",
+            delivery_first_name="Иван",
+            delivery_last_name="Иванов",
+            delivery_phone="+380501234567",
+            delivery_country="Украина",
+            delivery_city="Днепр",
+            delivery_address_line="ул. Тестовая, 1",
+            subtotal=Decimal("200.00"),
+            product_discount_total=Decimal("40.00"),
+            order_discount=Decimal("170.00"),
+            promotion_discount=Decimal("30.00"),
+            total=Decimal("0.00"),
+        )
+
+        with self.assertRaises(IntegrityError):
+            order.save()
