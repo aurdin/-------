@@ -1,11 +1,11 @@
 from decimal import Decimal
 
 from django.db import transaction
+from django.utils import timezone
 
+from catalog.services.product_name import ProductNameService
 from orders.models import Order, OrderItem, OrderStatus, OrderNumberSequence
 from prices.services import get_calculated_price_in_currency
-from catalog.services.product_name import ProductNameService
-from django.utils import timezone
 
 
 @transaction.atomic
@@ -17,9 +17,7 @@ def create_order_from_cart(
     order_data,
     at,
 ):
-    cart_items = list(
-        cart.items.select_related("product").all()
-    )
+    cart_items = list(cart.items.select_related("product").all())
 
     if not cart_items:
         raise ValueError("Cart is empty.")
@@ -42,22 +40,50 @@ def create_order_from_cart(
             )
 
         unit_price = calculated["final_price"]
-        discount = calculated["discount"]
 
-        item_total = (
-            unit_price * cart_item.quantity
+        discount_amount = (
+            calculated["price"].amount - calculated["final_price"]
         ).quantize(Decimal("0.01"))
 
-        subtotal += item_total
+        original_item_total = (
+            calculated["price"].amount * cart_item.quantity
+        ).quantize(Decimal("0.01"))
+
+        item_total = (unit_price * cart_item.quantity).quantize(Decimal("0.01"))
+
+        subtotal += original_item_total
+
+        product_discount_total += (discount_amount * cart_item.quantity).quantize(
+            Decimal("0.01")
+        )
 
         calculated_items.append(
             {
                 "cart_item": cart_item,
                 "unit_price": unit_price,
-                "discount": discount,
+                "discount": discount_amount,
                 "total": item_total,
             }
         )
+
+    order_discount = order_data.get(
+        "order_discount",
+        Decimal("0.00"),
+    )
+
+    promotion_discount = order_data.get(
+        "promotion_discount",
+        Decimal("0.00"),
+    )
+
+    remaining_amount = (subtotal - product_discount_total).quantize(Decimal("0.01"))
+
+    if order_discount + promotion_discount > remaining_amount:
+        raise ValueError("Order discounts exceed the remaining order amount.")
+
+    total = (
+        subtotal - product_discount_total - order_discount - promotion_discount
+    ).quantize(Decimal("0.01"))
 
     order = Order.objects.create(
         customer=customer,
@@ -94,9 +120,9 @@ def create_order_from_cart(
         ),
         subtotal=subtotal,
         product_discount_total=product_discount_total,
-        order_discount=Decimal("0.00"),
-        promotion_discount=Decimal("0.00"),
-        total=subtotal,
+        order_discount=order_discount,
+        promotion_discount=promotion_discount,
+        total=total,
     )
 
     for calculated in calculated_items:
@@ -109,19 +135,26 @@ def create_order_from_cart(
             product_name=ProductNameService.build(cart_item.product),
             quantity=cart_item.quantity,
             unit_price=calculated["unit_price"],
-            discount=Decimal("0.00"),
+            discount=calculated["discount"],
             total=calculated["total"],
         )
 
-        cart.items.all().delete()
+    cart.items.all().delete()
 
-        if cart.customer_id is None and cart.session_key is not None:
-            cart.session_key = None
-            cart.status = "free"
-            cart.save(update_fields=("session_key", "status", "updated_at"))
+    if cart.customer_id is None and cart.session_key is not None:
+        cart.session_key = None
+        cart.status = "free"
+        cart.save(
+            update_fields=(
+                "session_key",
+                "status",
+                "updated_at",
+            )
+        )
 
-        return order
-    
+    return order
+
+
 def change_order_status(order, new_status):
     allowed_transitions = {
         OrderStatus.NEW: {
@@ -140,29 +173,34 @@ def change_order_status(order, new_status):
         OrderStatus.CANCELLED: set(),
     }
 
-    if new_status not in allowed_transitions.get(order.status, set()):
+    if new_status not in allowed_transitions.get(
+        order.status,
+        set(),
+    ):
         raise ValueError(
             f"Invalid order status transition: {order.status} -> {new_status}"
         )
 
     order.status = new_status
-    order.save(update_fields=("status", "updated_at"))
+    order.save(
+        update_fields=(
+            "status",
+            "updated_at",
+        )
+    )
 
     return order
+
 
 def generate_order_number():
     today = timezone.now().strftime("%Y%m%d")
 
-    sequence, _  = (
-        OrderNumberSequence.objects
-        .select_for_update()
-        .get_or_create(
-            pk=1,
-            defaults={"value": 0},
-        )
+    sequence, _ = OrderNumberSequence.objects.select_for_update().get_or_create(
+        pk=1,
+        defaults={"value": 0},
     )
 
     sequence.value += 1
     sequence.save(update_fields=("value",))
 
-    return f"SMEL-{today}-{sequence.value:06d}"   
+    return f"SMEL-{today}-{sequence.value:06d}" 
