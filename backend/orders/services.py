@@ -75,17 +75,15 @@ def create_order_from_cart(
                 rate=calculated["exchange_rate"].rate,
             ).quantize(Decimal("0.01"))
 
-        original_item_total = (
-            calculated["price"].amount * cart_item.quantity
+        item_total = (
+            unit_price * cart_item.quantity
         ).quantize(Decimal("0.01"))
 
-        item_total = (unit_price * cart_item.quantity).quantize(Decimal("0.01"))
+        subtotal += item_total
 
-        subtotal += original_item_total
-
-        product_discount_total += (discount_amount * cart_item.quantity).quantize(
-            Decimal("0.01")
-        )
+        product_discount_total += (
+            discount_amount * cart_item.quantity
+        ).quantize(Decimal("0.01"))
 
         calculated_items.append(
             {
@@ -94,7 +92,9 @@ def create_order_from_cart(
                 "discount": discount_amount,
                 "total": item_total,
             }
-        )
+        )        
+
+        
 
     order_discount = order_data.get(
         "order_discount",
@@ -106,14 +106,12 @@ def create_order_from_cart(
         Decimal("0.00"),
     )
 
-    remaining_amount = (subtotal - product_discount_total).quantize(Decimal("0.01"))
+    remaining_amount = subtotal
 
     if order_discount + promotion_discount > remaining_amount:
         raise ValueError("Order discounts exceed the remaining order amount.")
 
-    total = (
-        subtotal - product_discount_total - order_discount - promotion_discount
-    ).quantize(Decimal("0.01"))
+    total = (subtotal - order_discount - promotion_discount).quantize(Decimal("0.01"))
 
     order = Order.objects.create(
         customer=customer,

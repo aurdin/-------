@@ -155,9 +155,7 @@ class Order(models.Model):
                     & Q(promotion_discount__gte=0)
                     & Q(
                         order_discount__lte=(
-                            models.F("subtotal")
-                            - models.F("product_discount_total")
-                            - models.F("promotion_discount")
+                            models.F("subtotal") - models.F("promotion_discount")
                         )
                     )
                 ),

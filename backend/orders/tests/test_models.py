@@ -400,10 +400,8 @@ class OrderModelTest(TestCase):
             Decimal("0.00"),
         )
 
-    def test_order_rejects_discounts_exceeding_remaining_amount_after_product_discount(
-        self,
-    ):
-        """Order отклоняет скидки, превышающие остаток после товарной скидки."""
+    def test_order_rejects_discounts_exceeding_subtotal(self):
+        """Order отклоняет скидки, превышающие subtotal."""
         order = Order(
             customer=self.user,
             currency=self.currency,
@@ -419,10 +417,10 @@ class OrderModelTest(TestCase):
             delivery_address_line="ул. Тестовая, 1",
             subtotal=Decimal("200.00"),
             product_discount_total=Decimal("40.00"),
-            order_discount=Decimal("170.00"),
+            order_discount=Decimal("171.00"),
             promotion_discount=Decimal("30.00"),
             total=Decimal("0.00"),
         )
 
         with self.assertRaises(IntegrityError):
-            order.save()
+            order.save()            

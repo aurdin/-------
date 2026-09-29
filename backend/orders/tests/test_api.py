@@ -921,3 +921,379 @@ class OrderAPITest(TestCase):
             order.items.get().unit_price,
             Decimal("2.50"),
         )
+
+    def test_checkout_stores_all_order_amounts_in_selected_currency(self):
+        """Checkout хранит все денежные значения заказа в выбранной валюте."""
+        usd = Currency.objects.create(
+            code="USD",
+            name="US Dollar",
+            symbol="$",
+            is_active=True,
+        )
+
+        now = timezone.now()
+
+        ExchangeRate.objects.create(
+            base_currency=self.currency,
+            quote_currency=usd,
+            rate=Decimal("40.00000000"),
+            valid_from=now,
+        )
+
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=now,
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": "USD",
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+
+        order = Order.objects.get(customer=self.user)
+        item = order.items.get()
+
+        self.assertEqual(order.currency_id, usd.id)
+        self.assertEqual(order.exchange_rate, Decimal("40.00000000"))
+
+        self.assertEqual(order.subtotal, Decimal("5.00"))
+        self.assertEqual(order.product_discount_total, Decimal("0.00"))
+        self.assertEqual(order.order_discount, Decimal("0.00"))
+        self.assertEqual(order.promotion_discount, Decimal("0.00"))
+        self.assertEqual(order.total, Decimal("5.00"))
+
+        self.assertEqual(item.unit_price, Decimal("2.50"))
+        self.assertEqual(item.discount, Decimal("0.00"))
+        self.assertEqual(item.total, Decimal("5.00"))
+
+    def test_checkout_converts_product_discount_to_selected_currency(self):
+        """Checkout конвертирует товарную скидку в выбранную валюту."""
+        usd = Currency.objects.create(
+            code="USD",
+            name="US Dollar",
+            symbol="$",
+            is_active=True,
+        )
+
+        now = timezone.now()
+
+        ExchangeRate.objects.create(
+            base_currency=self.currency,
+            quote_currency=usd,
+            rate=Decimal("40.00000000"),
+            valid_from=now,
+        )
+
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=now,
+        )
+
+        Discount.objects.create(
+            product=self.product,
+            type=Discount.DISCOUNT_TYPE_PERCENT,
+            value=Decimal("10.00"),
+            valid_from=now,
+            is_active=True,
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": "USD",
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+
+        order = Order.objects.get(customer=self.user)
+        item = order.items.get()
+
+        self.assertEqual(order.currency_id, usd.id)
+        self.assertEqual(order.exchange_rate, Decimal("40.00000000"))
+
+        self.assertEqual(order.subtotal, Decimal("4.50"))
+        self.assertEqual(
+            order.product_discount_total,
+            Decimal("0.50"),
+        )
+        self.assertEqual(order.order_discount, Decimal("0.00"))
+        self.assertEqual(order.promotion_discount, Decimal("0.00"))
+        self.assertEqual(order.total, Decimal("4.50"))
+
+        self.assertEqual(item.unit_price, Decimal("2.25"))
+        self.assertEqual(item.discount, Decimal("0.25"))
+        self.assertEqual(item.total, Decimal("4.50"))
+
+    def test_checkout_applies_order_and_promotion_discounts_in_selected_currency(self):
+        """Checkout применяет скидки заказа и акции в выбранной валюте."""
+        usd = Currency.objects.create(
+            code="USD",
+            name="US Dollar",
+            symbol="$",
+            is_active=True,
+        )
+
+        now = timezone.now()
+
+        ExchangeRate.objects.create(
+            base_currency=self.currency,
+            quote_currency=usd,
+            rate=Decimal("40.00000000"),
+            valid_from=now,
+        )
+
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=now,
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": "USD",
+                "order_discount": "1.00",
+                "promotion_discount": "0.50",
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+
+        order = Order.objects.get(customer=self.user)
+        item = order.items.get()
+
+        self.assertEqual(order.currency_id, usd.id)
+        self.assertEqual(order.exchange_rate, Decimal("40.00000000"))
+
+        self.assertEqual(order.subtotal, Decimal("5.00"))
+        self.assertEqual(
+            order.product_discount_total,
+            Decimal("0.00"),
+        )
+        self.assertEqual(order.order_discount, Decimal("1.00"))
+        self.assertEqual(order.promotion_discount, Decimal("0.50"))
+        self.assertEqual(order.total, Decimal("3.50"))
+
+        self.assertEqual(item.unit_price, Decimal("2.50"))
+        self.assertEqual(item.discount, Decimal("0.00"))
+        self.assertEqual(item.total, Decimal("5.00"))
+
+    def test_checkout_allows_discounts_equal_to_usd_order_amount(self):
+        """Checkout допускает скидки, полностью покрывающие USD-сумму заказа."""
+        usd = Currency.objects.create(
+            code="USD",
+            name="US Dollar",
+            symbol="$",
+            is_active=True,
+        )
+
+        now = timezone.now()
+
+        ExchangeRate.objects.create(
+            base_currency=self.currency,
+            quote_currency=usd,
+            rate=Decimal("40.00000000"),
+            valid_from=now,
+        )
+
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=now,
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": "USD",
+                "order_discount": "3.00",
+                "promotion_discount": "2.00",
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+
+        order = Order.objects.get(customer=self.user)
+
+        self.assertEqual(order.currency_id, usd.id)
+        self.assertEqual(order.exchange_rate, Decimal("40.00000000"))
+        self.assertEqual(order.subtotal, Decimal("5.00"))
+        self.assertEqual(order.product_discount_total, Decimal("0.00"))
+        self.assertEqual(order.order_discount, Decimal("3.00"))
+        self.assertEqual(order.promotion_discount, Decimal("2.00"))
+        self.assertEqual(order.total, Decimal("0.00"))
+
+    def test_checkout_rejects_excessive_usd_discounts(self):
+        """Checkout отклоняет скидки, превышающие USD-сумму заказа."""
+        usd = Currency.objects.create(
+            code="USD",
+            name="US Dollar",
+            symbol="$",
+            is_active=True,
+        )
+
+        now = timezone.now()
+
+        ExchangeRate.objects.create(
+            base_currency=self.currency,
+            quote_currency=usd,
+            rate=Decimal("40.00000000"),
+            valid_from=now,
+        )
+
+        Price.objects.create(
+            product=self.product,
+            currency=self.currency,
+            amount=Decimal("100.00"),
+            valid_from=now,
+        )
+
+        cart = Cart.objects.create(
+            customer=self.user,
+            status=CartStatus.BUSY,
+        )
+
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product,
+            quantity=2,
+        )
+
+        client = APIClient()
+        client.force_authenticate(
+            user=self.user,
+        )
+
+        response = client.post(
+            "/api/checkout/",
+            {
+                "currency": "USD",
+                "order_discount": "3.01",
+                "promotion_discount": "2.00",
+                "customer_name": "Иван Иванов",
+                "customer_phone": "+380501234567",
+                "delivery_first_name": "Иван",
+                "delivery_last_name": "Иванов",
+                "delivery_country": "Украина",
+                "delivery_city": "Днепр",
+                "delivery_address_line": "ул. Тестовая, 1",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data,
+            {
+                "detail": "Order discounts exceed the remaining order amount.",
+            },
+        )
+
+        self.assertFalse(Order.objects.filter(customer=self.user).exists())            

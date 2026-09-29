@@ -173,7 +173,7 @@ class CheckoutServiceTests(TestCase):
 
         self.assertEqual(
             order.subtotal,
-            Decimal("200.00"),
+            Decimal("180.00"),
         )
 
         self.assertEqual(
@@ -302,7 +302,7 @@ class CheckoutServiceTests(TestCase):
 
         self.assertEqual(
             order.subtotal,
-            Decimal("350.00"),
+            Decimal("320.00"),
         )
         self.assertEqual(
             order.product_discount_total,
