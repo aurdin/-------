@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block userlinks %}
+    {{ block.super }}
+
+    <form action="{% url 'set_language' %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+        {% get_available_languages as LANGUAGES %}
+
+        {% for lang_code, lang_name in LANGUAGES %}
+            <button type="submit"
+                    name="language"
+                    value="{{ lang_code }}"
+                    style="margin-left: 6px;">
+                {{ lang_code|upper }}
+            </button>
+        {% endfor %}
+    </form>
+{% endblock %}

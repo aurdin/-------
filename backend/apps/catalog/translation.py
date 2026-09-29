@@ -1,4 +1,4 @@
-from modeltranslation.translator import TranslationOptions, register
+from modeltranslation.translator import TranslationOptions, register # type: ignore
 
 from apps.catalog.models import Category
 

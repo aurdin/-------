@@ -1,10 +1,11 @@
 from django.contrib import admin
+from modeltranslation.admin import TranslationAdmin
 
 from apps.catalog.models import Category
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(TranslationAdmin):
     list_display = (
         "name",
         "status",
@@ -13,10 +14,5 @@ class CategoryAdmin(admin.ModelAdmin):
     )
 
     list_filter = ("status",)
-
-    search_fields = (
-        "name",
-        "description",
-    )
-
+    search_fields = ("name", "description")
     ordering = ("name",)

@@ -27,6 +27,7 @@ ALLOWED_HOSTS = [
 # APPLICATIONS
 
 INSTALLED_APPS = [
+    "modeltranslation",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -41,7 +42,6 @@ INSTALLED_APPS = [
     "apps.accounts",
     "corsheaders",
     "apps.orders",
-    "modeltranslation",
 ]
 
 
@@ -51,6 +51,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -67,7 +68,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -127,7 +128,10 @@ LANGUAGES = (
 )
 
 LANGUAGE_CODE = "en"
+
 MODELTRANSLATION_DEFAULT_LANGUAGE = "en"
+
+
 
 TIME_ZONE = "Europe/Kyiv"
 
