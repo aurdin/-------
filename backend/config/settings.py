@@ -34,13 +34,13 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "catalog",
-    "prices",
-    "stock",
-    "cart",
-    "accounts",
+    "apps.catalog",
+    "apps.prices",
+    "apps.stock",
+    "apps.cart",
+    "apps.accounts",
     "corsheaders",
-    "orders",
+    "apps.orders",
 ]
 
 
