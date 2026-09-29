@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "corsheaders",
     "apps.orders",
+    "modeltranslation",
 ]
 
 
@@ -119,7 +120,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # INTERNATIONALIZATION
 
-LANGUAGE_CODE = "ru-ru"
+LANGUAGES = (
+    ("en", "English"),
+    ("ru", "Russian"),
+    ("uk", "Ukrainian"),
+)
+
+LANGUAGE_CODE = "en"
+MODELTRANSLATION_DEFAULT_LANGUAGE = "en"
 
 TIME_ZONE = "Europe/Kyiv"
 
