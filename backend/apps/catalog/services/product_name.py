@@ -6,7 +6,7 @@ class ProductNameService:
     Формирует отображаемое имя товара на основании его параметров.
 
     Порядок:
-    Type → Model → Execution → Protection degree →
+    Type → TypeModel → Execution → Protection degree →
     Product characteristics → Brand → Series → Color
     """
 
@@ -18,9 +18,9 @@ class ProductNameService:
         if product.type_id:
             parts.append(product.type.name)
 
-        # 2. Model
-        if product.model_id:
-            parts.append(product.model.name)
+        # 2. TypeModel
+        if product.type_model_id:
+            parts.append(product.type_model.name)
 
         # 3. Execution
         if product.execution_id:
@@ -98,4 +98,3 @@ class ProductNameService:
             result.append(value)
 
         return result
-

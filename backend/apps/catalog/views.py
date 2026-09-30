@@ -8,7 +8,7 @@ from apps.catalog.models import (
     Brand,
     Series,
     Type,
-    Model,
+    TypeModel,
     Execution,
     Color,
     Product,
@@ -35,7 +35,7 @@ class ProductListView(generics.ListAPIView):
                 "brand",
                 "series",
                 "type",
-                "model",
+                "type_model",
                 "execution",
                 "color",
             )
@@ -78,7 +78,7 @@ class ProductListView(generics.ListAPIView):
             "brand": "brand_id",
             "series": "series_id",
             "type": "type_id",
-            "model": "model_id",
+            "type_model": "type_model_id",
             "execution": "execution_id",
             "color": "color_id",
             "protection_degree": "protection_degree",
@@ -173,7 +173,7 @@ class ProductDetailView(generics.RetrieveAPIView):
                 "brand",
                 "series",
                 "type",
-                "model",
+                "type_model",
                 "execution",
                 "color",
             )
@@ -230,7 +230,7 @@ class CatalogFiltersView(generics.GenericAPIView):
         )
 
         models = (
-            Model.objects.filter(
+            TypeModel.objects.filter(
                 products__in=active_products,
             )
             .distinct()

@@ -131,12 +131,11 @@ LANGUAGE_CODE = "en"
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = "en"
 
-
+LOCALE_PATHS = (BASE_DIR / "locale",)
 
 TIME_ZONE = "Europe/Kyiv"
 
 USE_I18N = True
-USE_TZ = True
 
 
 # STATIC FILES

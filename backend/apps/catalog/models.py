@@ -1,7 +1,9 @@
+from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db import models
 from decimal import Decimal
 from apps.catalog.services.color_availability import ColorAvailabilityService
+from .services.codes import generate_code
 
 
 def validate_characteristic_value(instance): # функция валидации значения параметра
@@ -53,38 +55,79 @@ def validate_characteristic_value(instance): # функция валидации
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(
+    cat_code = models.CharField(
+        max_length=20,
+        unique=True,
+        editable=False,
+    )
+
+    cat_name = models.CharField(
+        max_length=255,
+    )
+
+    cat_description = models.TextField(
         null=True,
         blank=True,
     )
-    status = models.BooleanField(
+
+    cat_status = models.BooleanField(
         default=True,
     )
+
     date_created = models.DateTimeField(
         auto_now_add=True,
     )
+
     date_updated = models.DateTimeField(
         auto_now=True,
     )
 
     class Meta:
         db_table = "catalog_category"
-        ordering = ("name",)
+        ordering = ("cat_name",)
+        verbose_name = _("Category")
+        verbose_name_plural = _("Categories")
 
     def __str__(self):
-        return self.name
+        return self.cat_name
 
 
 class Group(models.Model):
-    name = models.CharField(max_length=255)
+    grp_code = models.CharField(
+    max_length=20,
+    unique=True,
+    editable=False,
+    )
+
+    grp_name = models.CharField(
+        max_length=255,
+    )
+
+    grp_description = models.TextField(
+        null=True,
+        blank=True,
+    )
+
+    grp_status = models.BooleanField(
+        default=True,
+    )
+
+    date_created = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    date_updated = models.DateTimeField(
+        auto_now=True,
+    )
 
     class Meta:
         db_table = "catalog_group"
-        ordering = ("name",)
+        ordering = ("grp_name",)
+        verbose_name = _("Group")
+        verbose_name_plural = _("Groups")
 
     def __str__(self):
-        return self.name
+        return self.grp_name
 
 
 class CategoryGroup(models.Model):
@@ -113,14 +156,51 @@ class CategoryGroup(models.Model):
 
 
 class Brand(models.Model):
-    name = models.CharField(max_length=255)
+    brd_code = models.CharField(
+        max_length=20,
+        unique=True,
+        editable=False,
+    )
+
+    brd_name = models.CharField(
+        max_length=255,
+    )
+
+    brd_description = models.TextField(
+        null=True,
+        blank=True,
+    )
+
+    brd_status = models.BooleanField(
+        default=True,
+    )
+
+    date_created = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    date_updated = models.DateTimeField(
+        auto_now=True,
+    )
 
     class Meta:
         db_table = "catalog_brand"
-        ordering = ("name",)
+        ordering = ("brd_name",)
+        verbose_name = _("Brand")
+        verbose_name_plural = _("Brands")
+
+    def save(self, *args, **kwargs):
+        if not self.brd_code:
+            self.brd_code = generate_code(
+                Brand,
+                "brd_code",
+                "brd",
+            )
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return self.brd_name
 
 
 class Series(models.Model):
@@ -148,23 +228,21 @@ class Type(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Model(models.Model):
+    
+class TypeModel(models.Model):
     type = models.ForeignKey(
         Type,
         on_delete=models.CASCADE,
-        related_name="models",
+        related_name="type_models",
     )
     name = models.CharField(max_length=255)
 
     class Meta:
-        db_table = "catalog_model"
+        db_table = "catalog_type_model"
         ordering = ("name",)
 
     def __str__(self):
         return f"{self.type} — {self.name}"
-
 
 class Execution(models.Model):
     type = models.ForeignKey(
@@ -279,8 +357,8 @@ class Product(models.Model):
         related_name="products",
     )
 
-    model = models.ForeignKey(
-        Model,
+    type_model = models.ForeignKey(
+        TypeModel,
         on_delete=models.PROTECT,
         related_name="products",
         null=True,
@@ -344,66 +422,37 @@ class Product(models.Model):
 
     class Meta:
         db_table = "catalog_product"
-       
-def clean(self):
-    errors = {}
 
-    if self.model_id and self.type_id and self.model.type_id != self.type_id:
-        errors["model"] = "Model must belong to the same Type as Product."
-
-    if (
-        self.execution_id
-        and self.type_id
-        and self.execution.type_id != self.type_id
-    ):
-        errors["execution"] = "Execution must belong to the same Type as Product."
-
-    if self.series_id:
-        if not self.brand_id:
-            errors["series"] = "Series cannot be specified without Brand."
-        elif self.series.brand_id != self.brand_id:
-            errors["series"] = "Series must belong to the same Brand as Product."
-
-    if self.category_id and self.group_id:
-        allowed = CategoryGroup.objects.filter(
-            category_id=self.category_id,
-            group_id=self.group_id,
-        ).exists()
-
-        if not allowed:
-            errors["group"] = "The Category + Group combination is not allowed."
-
-    if self.color_id and self.type_id:
-        if not ColorAvailabilityService.is_allowed(
-            self.type,
-            self.series if self.series_id else None,
-            self.color,
-        ):
-            errors["color"] = (
-                "Color is not allowed for the selected Type and Series."
-            )
-
-    if errors:
-        raise ValidationError(errors)
-    
     def clean(self):
         errors = {}
 
-        if self.model_id and self.type_id and self.model.type_id != self.type_id:
-            errors["model"] = "Model must belong to the same Type as Product."
+        if (
+            self.type_model_id
+            and self.type_id
+            and self.type_model.type_id != self.type_id
+        ):
+            errors["type_model"] = (
+                "TypeModel must belong to the same Type as Product."
+            )
 
         if (
             self.execution_id
             and self.type_id
             and self.execution.type_id != self.type_id
         ):
-            errors["execution"] = "Execution must belong to the same Type as Product."
+            errors["execution"] = (
+                "Execution must belong to the same Type as Product."
+            )
 
         if self.series_id:
             if not self.brand_id:
-                errors["series"] = "Series cannot be specified without Brand."
+                errors["series"] = (
+                    "Series cannot be specified without Brand."
+                )
             elif self.series.brand_id != self.brand_id:
-                errors["series"] = "Series must belong to the same Brand as Product."
+                errors["series"] = (
+                    "Series must belong to the same Brand as Product."
+                )
 
         if self.category_id and self.group_id:
             allowed = CategoryGroup.objects.filter(
@@ -412,7 +461,9 @@ def clean(self):
             ).exists()
 
             if not allowed:
-                errors["group"] = "The Category + Group combination is not allowed."
+                errors["group"] = (
+                    "The Category + Group combination is not allowed."
+                )
 
         if self.color_id and self.type_id:
             if not ColorAvailabilityService.is_allowed(
@@ -425,7 +476,7 @@ def clean(self):
                 )
 
         if errors:
-            raise ValidationError(errors)    
+            raise ValidationError(errors)   
 
     def __str__(self):
         return self.article
@@ -549,8 +600,8 @@ class TypeCharacteristic(models.Model):
 
 
 class ModelCharacteristic(models.Model):
-    model = models.ForeignKey(
-        Model,
+    typemodel = models.ForeignKey(
+        TypeModel,
         on_delete=models.CASCADE,
         related_name="characteristics",
     )
@@ -588,21 +639,21 @@ class ModelCharacteristic(models.Model):
         db_table = "catalog_model_characteristic"
         constraints = (
             models.UniqueConstraint(
-                fields=("model", "characteristic"),
+                fields=("typemodel", "characteristic"),
                 name="uq_model_characteristic",
             ),
         )
 
     def clean(self):
-        if self.model_id and self.characteristic_id:
+        if self.typemodel_id and self.characteristic_id:
             if not TypeCharacteristic.objects.filter(
-                type_id=self.model.type_id,
+                type_id=self.typemodel.type_id,
                 characteristic_id=self.characteristic_id,
             ).exists():
                 raise ValidationError(
                     {
                         "characteristic": (
-                            "Characteristic is not allowed for the Model's Type."
+                            "Characteristic is not allowed for the TypeModel's Type."
                         )
                     }
                 )
@@ -610,7 +661,7 @@ class ModelCharacteristic(models.Model):
         validate_characteristic_value(self)
 
     def __str__(self):
-        return f"{self.model} — {self.characteristic}"
+        return f"{self.typemodel} — {self.characteristic}"
 
 
 class ExecutionCharacteristic(models.Model):

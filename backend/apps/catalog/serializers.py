@@ -67,6 +67,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
         )
 
 
+
 class ProductSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
 
@@ -75,7 +76,7 @@ class ProductSerializer(serializers.ModelSerializer):
     brand = serializers.SerializerMethodField()
     series = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
-    model = serializers.SerializerMethodField()
+    type_model = serializers.SerializerMethodField()
     execution = serializers.SerializerMethodField()
 
     color = serializers.SerializerMethodField()
@@ -101,7 +102,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "brand",
             "series",
             "type",
-            "model",
+            "type_model",
             "execution",
             "protection_degree",
             "color",
@@ -141,8 +142,8 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_type(self, obj):
         return self._reference(obj.type)
 
-    def get_model(self, obj):
-        return self._reference(obj.model)
+    def get_type_model(self, obj):
+        return self._reference(obj.type_model)
 
     def get_execution(self, obj):
         return self._reference(obj.execution)

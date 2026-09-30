@@ -1,5 +1,5 @@
 from django.contrib import admin
-from modeltranslation.admin import TranslationAdmin
+from modeltranslation.admin import TranslationAdmin # type: ignore
 
 from apps.catalog.models import Category
 
@@ -7,12 +7,13 @@ from apps.catalog.models import Category
 @admin.register(Category)
 class CategoryAdmin(TranslationAdmin):
     list_display = (
-        "name",
-        "status",
+        "cat_code",
+        "cat_name",
+        "cat_status",
         "date_created",
         "date_updated",
     )
 
-    list_filter = ("status",)
-    search_fields = ("name", "description")
-    ordering = ("name",)
+    list_filter = ("cat_status",)
+    search_fields = ("cat_code", "cat_name", "cat_description")
+    ordering = ("cat_name",)
