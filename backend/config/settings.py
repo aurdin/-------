@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "apps.accounts",
     "corsheaders",
     "apps.orders",
+    "directory.common",
+    "directory.group",
 ]
 
 

@@ -16,7 +16,7 @@ class ProductNameService:
 
         # 1. Type
         if product.type_id:
-            parts.append(product.type.name)
+            parts.append(product.type.typ_name)
 
         # 2. TypeModel
         if product.type_model_id:

@@ -4,6 +4,7 @@ from django.db import models
 from decimal import Decimal
 from apps.catalog.services.color_availability import ColorAvailabilityService
 from .services.codes import generate_code
+from directory.common.models import Category, Group
 
 
 def validate_characteristic_value(instance): # функция валидации значения параметра
@@ -54,81 +55,6 @@ def validate_characteristic_value(instance): # функция валидации
             )
 
 
-class Category(models.Model):
-    cat_code = models.CharField(
-        max_length=20,
-        unique=True,
-        editable=False,
-    )
-
-    cat_name = models.CharField(
-        max_length=255,
-    )
-
-    cat_description = models.TextField(
-        null=True,
-        blank=True,
-    )
-
-    cat_status = models.BooleanField(
-        default=True,
-    )
-
-    date_created = models.DateTimeField(
-        auto_now_add=True,
-    )
-
-    date_updated = models.DateTimeField(
-        auto_now=True,
-    )
-
-    class Meta:
-        db_table = "catalog_category"
-        ordering = ("cat_name",)
-        verbose_name = _("Category")
-        verbose_name_plural = _("Categories")
-
-    def __str__(self):
-        return self.cat_name
-
-
-class Group(models.Model):
-    grp_code = models.CharField(
-    max_length=20,
-    unique=True,
-    editable=False,
-    )
-
-    grp_name = models.CharField(
-        max_length=255,
-    )
-
-    grp_description = models.TextField(
-        null=True,
-        blank=True,
-    )
-
-    grp_status = models.BooleanField(
-        default=True,
-    )
-
-    date_created = models.DateTimeField(
-        auto_now_add=True,
-    )
-
-    date_updated = models.DateTimeField(
-        auto_now=True,
-    )
-
-    class Meta:
-        db_table = "catalog_group"
-        ordering = ("grp_name",)
-        verbose_name = _("Group")
-        verbose_name_plural = _("Groups")
-
-    def __str__(self):
-        return self.grp_name
-
 
 class CategoryGroup(models.Model):
     category = models.ForeignKey(
@@ -136,6 +62,7 @@ class CategoryGroup(models.Model):
         on_delete=models.CASCADE,
         related_name="category_groups",
     )
+
     group = models.ForeignKey(
         Group,
         on_delete=models.CASCADE,
@@ -153,6 +80,7 @@ class CategoryGroup(models.Model):
 
     def __str__(self):
         return f"{self.category} — {self.group}"
+
 
 
 class Brand(models.Model):
@@ -204,30 +132,114 @@ class Brand(models.Model):
 
 
 class Series(models.Model):
+    srs_code = models.CharField(
+        max_length=20,
+        unique=True,
+        editable=False,
+    )
+
     brand = models.ForeignKey(
         Brand,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="series",
     )
-    name = models.CharField(max_length=255)
+
+    srs_name = models.CharField(
+        max_length=255,
+    )
+
+    srs_description = models.TextField(
+        null=True,
+        blank=True,
+    )
+
+    srs_status = models.BooleanField(
+        default=True,
+    )
+
+    date_created = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    date_updated = models.DateTimeField(
+        auto_now=True,
+    )
 
     class Meta:
         db_table = "catalog_series"
-        ordering = ("name",)
+        ordering = ("srs_name",)
+        verbose_name = _("Series")
+        verbose_name_plural = _("Series")
+
+        constraints = (
+            models.UniqueConstraint(
+                fields=("brand", "srs_name"),
+                name="uq_series_brand_name",
+            ),
+        )
+
+    def save(self, *args, **kwargs):
+        if not self.srs_code:
+            self.srs_code = generate_code(
+                Series,
+                "srs_code",
+                "srs",
+            )
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.brand} — {self.name}"
+        return self.srs_name
 
 
 class Type(models.Model):
-    name = models.CharField(max_length=255)
+    typ_code = models.CharField(
+        max_length=20,
+        unique=True,
+        editable=False,
+    )
+
+    typ_name = models.CharField(
+        max_length=255,
+        unique=True,
+    )
+
+    typ_description = models.TextField(
+        null=True,
+        blank=True,
+    )
+
+    typ_status = models.BooleanField(
+        default=True,
+    )
+
+    date_created = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    date_updated = models.DateTimeField(
+        auto_now=True,
+    )
 
     class Meta:
         db_table = "catalog_type"
-        ordering = ("name",)
+        ordering = ("typ_name",)
+        verbose_name = _("Type")
+        verbose_name_plural = _("Types")
+
+    def save(self, *args, **kwargs):
+        if not self.typ_code:
+            self.typ_code = generate_code(
+                Type,
+                "typ_code",
+                "typ",
+            )
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return self.typ_name
+    
     
 class TypeModel(models.Model):
     type = models.ForeignKey(
