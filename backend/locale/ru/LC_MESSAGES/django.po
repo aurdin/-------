@@ -7,19 +7,158 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SmEl\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-06 12:18+0300\n"
+"Language: ru\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ru\n"
-"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14) ? 2 : 3);\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
+"(n%100>=11 && n%100<=14) ? 2 : 3);\n"
 
 #: apps/catalog/apps.py:8
 msgid "Catalog"
 msgstr "Каталог"
 
-#: apps/catalog/models.py:75
+#: directory/common/apps.py:9
+msgid "Common"
+msgstr "Общие справочники"
+
+#: directory/common/models.py:39
 msgid "Category"
 msgstr "Категория"
 
-#: apps/catalog/models.py:76
+#: directory/common/models.py:40
 msgid "Categories"
 msgstr "Категории"
+
+#: directory/common/models.py:83
+msgid "Group"
+msgstr "Группа"
+
+#: directory/common/models.py:84
+msgid "Groups"
+msgstr "Группы"
+
+#: directory/common/models.py:126
+msgid "Brand"
+msgstr "Бренд"
+
+#: directory/common/models.py:127
+msgid "Brands"
+msgstr "Бренды"
+
+#: directory/common/models.py:180 directory/common/models.py:181
+msgid "Series"
+msgstr "Серия"
+
+#: directory/common/models.py:228
+msgid "Type"
+msgstr "Тип"
+
+#: directory/common/models.py:229
+msgid "Types"
+msgstr "Типы"
+
+#: directory/common/models.py:266
+msgid "Group type"
+msgstr "Тип группы"
+
+#: directory/common/models.py:267
+msgid "Group types"
+msgstr "Типы групп"
+
+msgid "Series type"
+msgstr "Тип серии"
+
+msgid "Series types"
+msgstr "Типы серий"
+
+msgid "Protection degree"
+msgstr "Степень защиты"
+
+msgid "Protection degrees"
+msgstr "Степени защиты"
+
+msgid "Color"
+msgstr "Цвет"
+
+msgid "Colors"
+msgstr "Цвета"
+
+msgid "Series product color"
+msgstr "Цвет товара серии"
+
+msgid "Series product colors"
+msgstr "Цвета товаров серии"
+
+msgid "Series frame color"
+msgstr "Цвет рамки серии"
+
+msgid "Series frame colors"
+msgstr "Цвета рамок серии"
+
+msgid "Type model"
+msgstr "Модель типа"
+
+msgid "Type models"
+msgstr "Модели типов"
+
+msgid "Type model type"
+msgstr "Связь модели с типом"
+
+msgid "Type model types"
+msgstr "Связи моделей с типами"
+
+msgid "Execution"
+msgstr "Исполнение"
+
+msgid "Executions"
+msgstr "Исполнения"
+
+msgid "Type execution"
+msgstr "Связь типа с исполнением"
+
+msgid "Type executions"
+msgstr "Связи типов с исполнениями"
+
+#: directory/characteristics/models.py
+msgid "Characteristic group"
+msgstr "Группа характеристик"
+
+#: directory/characteristics/models.py
+msgid "Characteristic groups"
+msgstr "Группы характеристик"
+
+#: directory/characteristics/apps.py
+msgid "Characteristics"
+msgstr "Характеристики"
+
+#: directory/characteristics/models.py
+msgid "Unit"
+msgstr "Единица измерения"
+
+#: directory/characteristics/models.py
+msgid "Units"
+msgstr "Единицы измерения"
+
+msgid "Code"
+msgstr "Код"
+
+msgid "Name"
+msgstr "Название"
+
+msgid "Description"
+msgstr "Описание"
+
+msgid "Symbol"
+msgstr "Обозначение"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "Date created"
+msgstr "Дата создания"
+
+msgid "Date updated"
+msgstr "Дата изменения"

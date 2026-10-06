@@ -2,8 +2,7 @@ from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
 
-class CommonConfig(AppConfig):
+class CharacteristicsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-
-    name = "directory.common"
-    verbose_name = _("Common")
+    name = "directory.characteristics"
+    verbose_name = _("Characteristics")

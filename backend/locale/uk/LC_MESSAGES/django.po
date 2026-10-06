@@ -7,19 +7,159 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SmEl\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-06 12:18+0300\n"
+"Language: uk\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: uk\n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 == 0 || (n % 10 >= 5 && n % 10 <= 9) || (n % 100 >= 11 && n % 100 <= 14)) ? 2 : 3);\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 == 0 || (n % 10 >= 5 && n % 10 <= 9) "
+"|| (n % 100 >= 11 && n % 100 <= 14)) ? 2 : 3);\n"
 
 #: apps/catalog/apps.py:8
 msgid "Catalog"
 msgstr "Каталог"
 
-#: apps/catalog/models.py:75
+#: directory/common/apps.py:9
+msgid "Common"
+msgstr "Загальні довідники"
+
+#: directory/common/models.py:39
 msgid "Category"
 msgstr "Категорія"
 
-#: apps/catalog/models.py:76
+#: directory/common/models.py:40
 msgid "Categories"
 msgstr "Категорії"
+
+#: directory/common/models.py:83
+msgid "Group"
+msgstr "Група"
+
+#: directory/common/models.py:84
+msgid "Groups"
+msgstr "Групи"
+
+#: directory/common/models.py:126
+msgid "Brand"
+msgstr "Бренд"
+
+#: directory/common/models.py:127
+msgid "Brands"
+msgstr "Бренди"
+
+#: directory/common/models.py:180 directory/common/models.py:181
+msgid "Series"
+msgstr "Серія"
+
+#: directory/common/models.py:228
+msgid "Type"
+msgstr "Тип"
+
+#: directory/common/models.py:229
+msgid "Types"
+msgstr "Типи"
+
+#: directory/common/models.py:266
+msgid "Group type"
+msgstr "Тип групи"
+
+#: directory/common/models.py:267
+msgid "Group types"
+msgstr "Типи груп"
+
+msgid "Series type"
+msgstr "Тип серії"
+
+msgid "Series types"
+msgstr "Типи серій"
+
+msgid "Protection degree"
+msgstr "Ступінь захисту"
+
+msgid "Protection degrees"
+msgstr "Ступені захисту"
+
+msgid "Color"
+msgstr "Колір"
+
+msgid "Colors"
+msgstr "Кольори"
+
+msgid "Series product color"
+msgstr "Колір товару серії"
+
+msgid "Series product colors"
+msgstr "Кольори товарів серії"
+
+msgid "Series frame color"
+msgstr "Колір рамки серії"
+
+msgid "Series frame colors"
+msgstr "Кольори рамок серії"
+
+msgid "Type model"
+msgstr "Модель типу"
+
+msgid "Type models"
+msgstr "Моделі типів"
+
+msgid "Type model type"
+msgstr "Зв’язок моделі з типом"
+
+msgid "Type model types"
+msgstr "Зв’язки моделей з типами"
+
+msgid "Execution"
+msgstr "Виконання"
+
+msgid "Executions"
+msgstr "Виконання"
+
+msgid "Type execution"
+msgstr "Зв’язок типу з виконанням"
+
+msgid "Type executions"
+msgstr "Зв’язки типів із виконаннями"
+
+#: directory/characteristics/models.py
+msgid "Characteristic group"
+msgstr "Група характеристик"
+
+#: directory/characteristics/models.py
+msgid "Characteristic groups"
+msgstr "Групи характеристик"
+
+#: directory/characteristics/apps.py
+msgid "Characteristics"
+msgstr "Характеристики"
+
+#: directory/characteristics/models.py
+msgid "Unit"
+msgstr "Одиниця вимірювання"
+
+#: directory/characteristics/models.py
+msgid "Units"
+msgstr "Одиниці вимірювання"
+
+msgid "Code"
+msgstr "Код"
+
+msgid "Name"
+msgstr "Назва"
+
+msgid "Description"
+msgstr "Опис"
+
+msgid "Symbol"
+msgstr "Позначення"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "Date created"
+msgstr "Дата створення"
+
+msgid "Date updated"
+msgstr "Дата зміни"
