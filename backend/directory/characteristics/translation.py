@@ -1,7 +1,11 @@
 from modeltranslation.translator import TranslationOptions, register  # type: ignore
 
-from .models import CharacteristicGroup, Unit
-
+from .models import (
+    Characteristic,
+    CharacteristicGroup,
+    TypeCharacteristic,
+    Unit,
+)
 
 @register(CharacteristicGroup)
 class CharacteristicGroupTranslationOptions(TranslationOptions):
@@ -15,4 +19,11 @@ class UnitTranslationOptions(TranslationOptions):
 
     fields = (
         "unt_name",
+    )
+
+@register(Characteristic)
+class CharacteristicTranslationOptions(TranslationOptions):
+    fields = (
+        "chr_name",
+        "chr_description",
     )

@@ -109,4 +109,109 @@ class Unit(models.Model):
                 "unt_code",
                 "unt",
             )
-        super().save(*args, **kwargs)        
+        super().save(*args, **kwargs) 
+
+
+class Characteristic(models.Model):
+    chr_code = models.CharField(
+        _("Code"),
+        max_length=20,
+        unique=True,
+        editable=False,
+    )
+    chr_name = models.CharField(
+        _("Name"),
+        max_length=255,
+        blank=True,
+    )
+    chr_description = models.TextField(
+        _("Description"),
+        null=True,
+        blank=True,
+    )
+    chr_group = models.ForeignKey(
+        CharacteristicGroup,
+        on_delete=models.PROTECT,
+        related_name="characteristics",
+        verbose_name=_("Characteristic group"),
+    )
+    chr_unit = models.ForeignKey(
+        Unit,
+        on_delete=models.PROTECT,
+        related_name="characteristics",
+        verbose_name=_("Unit"),
+        null=True,
+        blank=True,
+    )
+    chr_status = models.BooleanField(
+        _("Status"),
+        default=True,
+    )
+    date_created = models.DateTimeField(
+        _("Date created"),
+        auto_now_add=True,
+    )
+    date_updated = models.DateTimeField(
+        _("Date updated"),
+        auto_now=True,
+    )
+
+    class Meta:
+        db_table = "characteristics"
+        ordering = ["chr_name"]
+        verbose_name = _("Characteristic")
+        verbose_name_plural = _("Characteristics")
+
+    def __str__(self):
+        return self.chr_name
+
+    def save(self, *args, **kwargs):
+        if not self.chr_code:
+            self.chr_code = generate_code(
+                self.__class__,
+                "chr_code",
+                "chr",
+            )
+        super().save(*args, **kwargs)
+
+
+class TypeCharacteristic(models.Model):
+    tch_type = models.ForeignKey(
+        "common.Type",
+        on_delete=models.PROTECT,
+        related_name="type_characteristics",
+        verbose_name=_("Type"),
+    )
+    tch_characteristic = models.ForeignKey(
+        Characteristic,
+        on_delete=models.PROTECT,
+        related_name="type_characteristics",
+        verbose_name=_("Characteristic"),
+    )
+    tch_status = models.BooleanField(
+        _("Status"),
+        default=True,
+    )
+    date_created = models.DateTimeField(
+        _("Date created"),
+        auto_now_add=True,
+    )
+    date_updated = models.DateTimeField(
+        _("Date updated"),
+        auto_now=True,
+    )
+
+    class Meta:
+        db_table = "type_characteristics"
+        ordering = ["tch_type", "tch_characteristic"]
+        verbose_name = _("Type characteristic")
+        verbose_name_plural = _("Type characteristics")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("tch_type", "tch_characteristic"),
+                name="unique_type_characteristic",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.tch_type} — {self.tch_characteristic}"                       

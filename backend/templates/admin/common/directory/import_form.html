@@ -1,0 +1,24 @@
+```html
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div>
+            {{ form.as_p }}
+        </div>
+
+        <div class="submit-row">
+            <input
+                type="submit"
+                value="{% translate 'Import from Excel' %}"
+                class="default"
+            >
+        </div>
+    </form>
+{% endblock %}
+```

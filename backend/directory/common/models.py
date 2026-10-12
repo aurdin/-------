@@ -7,29 +7,35 @@ from .services.codes import generate_code
 # Справочник категорий
 class Category(models.Model):
     cat_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
     )
 
     cat_name = models.CharField(
+        _("Name"),
         max_length=255,
     )
 
     cat_description = models.TextField(
+        _("Description"),
         null=True,
         blank=True,
     )
 
     cat_status = models.BooleanField(
+        _("Status"),
         default=True,
     )
 
     date_created = models.DateTimeField(
+        _("Date created"),
         auto_now_add=True,
     )
 
     date_updated = models.DateTimeField(
+        _("Date updated"),
         auto_now=True,
     )
 
@@ -41,7 +47,11 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.cat_code:
-            self.cat_code = generate_code(Category, "cat_code", "cat")
+            self.cat_code = generate_code(
+                Category,
+                "cat_code",
+                "cat",
+            )
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -51,29 +61,35 @@ class Category(models.Model):
 # Справочник групп
 class Group(models.Model):
     grp_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
     )
 
     grp_name = models.CharField(
+        _("Name"),
         max_length=255,
     )
 
     grp_description = models.TextField(
+        _("Description"),
         null=True,
         blank=True,
     )
 
     grp_status = models.BooleanField(
+        _("Status"),
         default=True,
     )
 
     date_created = models.DateTimeField(
+        _("Date created"),
         auto_now_add=True,
     )
 
     date_updated = models.DateTimeField(
+        _("Date updated"),
         auto_now=True,
     )
 
@@ -85,38 +101,49 @@ class Group(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.grp_code:
-            self.grp_code = generate_code(Group, "grp_code", "grp")
+            self.grp_code = generate_code(
+                Group,
+                "grp_code",
+                "grp",
+            )
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.grp_name
 
+
 # Справочник брендов
 class Brand(models.Model):
     brd_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
     )
 
     brd_name = models.CharField(
+        _("Name"),
         max_length=255,
     )
 
     brd_description = models.TextField(
+        _("Description"),
         null=True,
         blank=True,
     )
 
     brd_status = models.BooleanField(
+        _("Status"),
         default=True,
     )
 
     date_created = models.DateTimeField(
+        _("Date created"),
         auto_now_add=True,
     )
 
     date_updated = models.DateTimeField(
+        _("Date updated"),
         auto_now=True,
     )
 
@@ -142,6 +169,7 @@ class Brand(models.Model):
 # Справочник серий
 class Series(models.Model):
     ser_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
@@ -154,23 +182,28 @@ class Series(models.Model):
     )
 
     ser_name = models.CharField(
+        _("Name"),
         max_length=255,
     )
 
     ser_description = models.TextField(
+        _("Description"),
         null=True,
         blank=True,
     )
 
     ser_status = models.BooleanField(
+        _("Status"),
         default=True,
     )
 
     date_created = models.DateTimeField(
+        _("Date created"),
         auto_now_add=True,
     )
 
     date_updated = models.DateTimeField(
+        _("Date updated"),
         auto_now=True,
     )
 
@@ -190,35 +223,41 @@ class Series(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.ser_name  
+        return self.ser_name
 
 
 # Справочник типов
 class Type(models.Model):
     typ_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
     )
 
     typ_name = models.CharField(
+        _("Name"),
         max_length=255,
     )
 
     typ_description = models.TextField(
+        _("Description"),
         null=True,
         blank=True,
     )
 
     typ_status = models.BooleanField(
+        _("Status"),
         default=True,
     )
 
     date_created = models.DateTimeField(
+        _("Date created"),
         auto_now_add=True,
     )
 
     date_updated = models.DateTimeField(
+        _("Date updated"),
         auto_now=True,
     )
 
@@ -238,7 +277,7 @@ class Type(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.typ_name   
+        return self.typ_name
 
 
 # Связь групп и типов
@@ -277,6 +316,7 @@ class SeriesType(models.Model):
         on_delete=models.PROTECT,
         related_name="series_types",
     )
+
     type = models.ForeignKey(
         Type,
         on_delete=models.PROTECT,
@@ -301,17 +341,37 @@ class SeriesType(models.Model):
 # Справочник степеней защиты
 class ProtectionDegree(models.Model):
     ptd_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
     )
 
-    ptd_name = models.CharField(max_length=255)
-    ptd_description = models.TextField(null=True, blank=True)
-    ptd_status = models.BooleanField(default=True)
+    ptd_name = models.CharField(
+        _("Name"),
+        max_length=255,
+    )
 
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    ptd_description = models.TextField(
+        _("Description"),
+        null=True,
+        blank=True,
+    )
+
+    ptd_status = models.BooleanField(
+        _("Status"),
+        default=True,
+    )
+
+    date_created = models.DateTimeField(
+        _("Date created"),
+        auto_now_add=True,
+    )
+
+    date_updated = models.DateTimeField(
+        _("Date updated"),
+        auto_now=True,
+    )
 
     class Meta:
         db_table = "common_protection_degree"
@@ -335,29 +395,35 @@ class ProtectionDegree(models.Model):
 # Справочник цветов
 class Color(models.Model):
     clr_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
     )
 
     clr_name = models.CharField(
+        _("Name"),
         max_length=255,
     )
 
     clr_description = models.TextField(
+        _("Description"),
         null=True,
         blank=True,
     )
 
     clr_status = models.BooleanField(
+        _("Status"),
         default=True,
     )
 
     date_created = models.DateTimeField(
+        _("Date created"),
         auto_now_add=True,
     )
 
     date_updated = models.DateTimeField(
+        _("Date updated"),
         auto_now=True,
     )
 
@@ -380,6 +446,7 @@ class Color(models.Model):
         return self.clr_name
 
 
+# Цвета товаров серии
 class SeriesProductColor(models.Model):
     series = models.ForeignKey(
         Series,
@@ -405,7 +472,7 @@ class SeriesProductColor(models.Model):
         verbose_name_plural = _("Series product colors")
 
     def __str__(self):
-        return f"{self.series} — {self.color}"   
+        return f"{self.series} — {self.color}"
 
 
 # Цвета рамок серии
@@ -440,29 +507,35 @@ class SeriesFrameColor(models.Model):
 # Справочник моделей типов
 class TypeModel(models.Model):
     mdl_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
     )
 
     mdl_name = models.CharField(
+        _("Name"),
         max_length=255,
     )
 
     mdl_description = models.TextField(
+        _("Description"),
         null=True,
         blank=True,
     )
 
     mdl_status = models.BooleanField(
+        _("Status"),
         default=True,
     )
 
     date_created = models.DateTimeField(
+        _("Date created"),
         auto_now_add=True,
     )
 
     date_updated = models.DateTimeField(
+        _("Date updated"),
         auto_now=True,
     )
 
@@ -517,29 +590,35 @@ class TypeModelType(models.Model):
 # Справочник исполнений
 class Execution(models.Model):
     exc_code = models.CharField(
+        _("Code"),
         max_length=20,
         unique=True,
         editable=False,
     )
 
     exc_name = models.CharField(
+        _("Name"),
         max_length=255,
     )
 
     exc_description = models.TextField(
+        _("Description"),
         null=True,
         blank=True,
     )
 
     exc_status = models.BooleanField(
+        _("Status"),
         default=True,
     )
 
     date_created = models.DateTimeField(
+        _("Date created"),
         auto_now_add=True,
     )
 
     date_updated = models.DateTimeField(
+        _("Date updated"),
         auto_now=True,
     )
 
@@ -589,3 +668,4 @@ class TypeExecution(models.Model):
 
     def __str__(self):
         return f"{self.type} — {self.execution}"
+

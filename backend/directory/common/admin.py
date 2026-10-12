@@ -1,6 +1,10 @@
 from django.contrib import admin
+from django.http import HttpResponse
+from django.urls import path
 from modeltranslation.admin import TranslationAdmin  # type: ignore
-
+from django.utils.translation import gettext_lazy as _
+from directory.services.export import DirectoryExportService
+from directory.services.export_admin import DirectoryExportAdminMixin
 from .models import (
     Brand,
     Category,
@@ -21,7 +25,7 @@ from .models import (
 
 
 @admin.register(Category)
-class CategoryAdmin(TranslationAdmin):
+class CategoryAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "cat_code",
         "cat_name",
@@ -36,7 +40,7 @@ class CategoryAdmin(TranslationAdmin):
 
 
 @admin.register(Group)
-class GroupAdmin(TranslationAdmin):
+class GroupAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "grp_code",
         "grp_name",
@@ -51,7 +55,7 @@ class GroupAdmin(TranslationAdmin):
 
 
 @admin.register(Brand)
-class BrandAdmin(TranslationAdmin):
+class BrandAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "brd_code",
         "brd_name",
@@ -61,12 +65,19 @@ class BrandAdmin(TranslationAdmin):
     )
 
     list_filter = ("brd_status",)
-    search_fields = ("brd_code", "brd_name", "brd_description")
+
+    search_fields = (
+        "brd_code",
+        "brd_name",
+        "brd_description",
+    )
+
     ordering = ("brd_name",)
 
+  
 
 @admin.register(Series)
-class SeriesAdmin(TranslationAdmin):
+class SeriesAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "ser_code",
         "brand",
@@ -87,7 +98,7 @@ class SeriesAdmin(TranslationAdmin):
 
 
 @admin.register(Type)
-class TypeAdmin(TranslationAdmin):
+class TypeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "typ_code",
         "typ_name",
@@ -129,7 +140,7 @@ class SeriesTypeAdmin(admin.ModelAdmin):
     ordering = ("series", "type")
 
 @admin.register(ProtectionDegree)
-class ProtectionDegreeAdmin(TranslationAdmin):
+class ProtectionDegreeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "ptd_code",
         "ptd_name",
@@ -147,7 +158,7 @@ class ProtectionDegreeAdmin(TranslationAdmin):
 
 
 @admin.register(Color)
-class ColorAdmin(TranslationAdmin):
+class ColorAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "clr_code",
         "clr_name",
@@ -205,7 +216,7 @@ class SeriesFrameColorAdmin(admin.ModelAdmin):
 
 
 @admin.register(TypeModel)
-class TypeModelAdmin(TranslationAdmin):
+class TypeModelAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "mdl_code",
         "mdl_name",
@@ -243,7 +254,7 @@ class TypeModelTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(Execution)
-class ExecutionAdmin(TranslationAdmin):
+class ExecutionAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
         "exc_code",
         "exc_name",

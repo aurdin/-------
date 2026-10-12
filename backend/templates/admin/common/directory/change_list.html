@@ -1,0 +1,16 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    <li>
+        <a href="{% url export_url_name %}">
+            {% translate "Export to Excel" %}
+        </a>
+    </li>
+    <li>
+        <a href="{% url import_url_name %}">
+            {% translate "Import from Excel" %}
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

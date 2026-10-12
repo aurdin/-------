@@ -162,3 +162,20 @@ msgstr "Дата создания"
 
 msgid "Date updated"
 msgstr "Дата изменения"
+
+msgid "Type characteristic"
+msgstr "Характеристика типа"
+
+msgid "Type characteristics"
+msgstr "Характеристики типа"
+
+#: directory/characteristics/models.py
+msgid "Characteristic"
+msgstr "Характеристика"
+
+msgid "Export to Excel"
+msgstr "Экспорт в Excel"
+
+msgid "Import from Excel"
+msgstr "Импорт из Excel"
+
