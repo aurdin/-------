@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from .services.codes import generate_code
 
 
-# Справочник категорий
+# 1. Справочник категорий
 class Category(models.Model):
     cat_code = models.CharField(
         _("Code"),
@@ -44,6 +44,7 @@ class Category(models.Model):
         ordering = ("cat_name",)
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
+        db_table_comment = "Общий справочник категорий продукции"
 
     def save(self, *args, **kwargs):
         if not self.cat_code:
@@ -58,7 +59,7 @@ class Category(models.Model):
         return self.cat_name
 
 
-# Справочник групп
+# 2. Справочник групп
 class Group(models.Model):
     grp_code = models.CharField(
         _("Code"),
@@ -98,6 +99,7 @@ class Group(models.Model):
         ordering = ("grp_name",)
         verbose_name = _("Group")
         verbose_name_plural = _("Groups")
+        db_table_comment = "Общий справочник групп продукции"
 
     def save(self, *args, **kwargs):
         if not self.grp_code:
@@ -112,7 +114,7 @@ class Group(models.Model):
         return self.grp_name
 
 
-# Справочник брендов
+# 3. Справочник брендов
 class Brand(models.Model):
     brd_code = models.CharField(
         _("Code"),
@@ -152,6 +154,7 @@ class Brand(models.Model):
         ordering = ("brd_name",)
         verbose_name = _("Brand")
         verbose_name_plural = _("Brands")
+        db_table_comment = "Общий справочник брендов продукции"
 
     def save(self, *args, **kwargs):
         if not self.brd_code:
@@ -166,7 +169,7 @@ class Brand(models.Model):
         return self.brd_name
 
 
-# Справочник серий
+# 4. Справочник серий
 class Series(models.Model):
     ser_code = models.CharField(
         _("Code"),
@@ -212,6 +215,7 @@ class Series(models.Model):
         ordering = ("ser_name",)
         verbose_name = _("Series")
         verbose_name_plural = _("Series")
+        db_table_comment = "Общий справочник серий продукции"
 
     def save(self, *args, **kwargs):
         if not self.ser_code:
@@ -226,7 +230,7 @@ class Series(models.Model):
         return self.ser_name
 
 
-# Справочник типов
+# 5. Справочник типов
 class Type(models.Model):
     typ_code = models.CharField(
         _("Code"),
@@ -266,6 +270,7 @@ class Type(models.Model):
         ordering = ("typ_name",)
         verbose_name = _("Type")
         verbose_name_plural = _("Types")
+        db_table_comment = "Общий справочник типов продукции"
 
     def save(self, *args, **kwargs):
         if not self.typ_code:
@@ -280,65 +285,7 @@ class Type(models.Model):
         return self.typ_name
 
 
-# Связь групп и типов
-class GroupType(models.Model):
-    group = models.ForeignKey(
-        Group,
-        on_delete=models.PROTECT,
-        related_name="group_types",
-    )
-
-    type = models.ForeignKey(
-        Type,
-        on_delete=models.PROTECT,
-        related_name="group_types",
-    )
-
-    class Meta:
-        db_table = "common_group_type"
-        constraints = [  # noqa: RUF012
-            models.UniqueConstraint(
-                fields=("group", "type"),
-                name="unique_group_type",
-            ),
-        ]
-        verbose_name = _("Group type")
-        verbose_name_plural = _("Group types")
-
-    def __str__(self):
-        return f"{self.group} — {self.type}"
-
-
-# Связь серии и типа
-class SeriesType(models.Model):
-    series = models.ForeignKey(
-        Series,
-        on_delete=models.PROTECT,
-        related_name="series_types",
-    )
-
-    type = models.ForeignKey(
-        Type,
-        on_delete=models.PROTECT,
-        related_name="series_types",
-    )
-
-    class Meta:
-        db_table = "common_series_type"
-        constraints = [  # noqa: RUF012
-            models.UniqueConstraint(
-                fields=("series", "type"),
-                name="unique_series_type",
-            ),
-        ]
-        verbose_name = _("Series type")
-        verbose_name_plural = _("Series types")
-
-    def __str__(self):
-        return f"{self.series} — {self.type}"
-
-
-# Справочник степеней защиты
+# 6. Справочник степеней защиты
 class ProtectionDegree(models.Model):
     ptd_code = models.CharField(
         _("Code"),
@@ -378,6 +325,7 @@ class ProtectionDegree(models.Model):
         ordering = ("ptd_name",)
         verbose_name = _("Protection degree")
         verbose_name_plural = _("Protection degrees")
+        db_table_comment = "Общий справочник степеней защиты продукции"
 
     def save(self, *args, **kwargs):
         if not self.ptd_code:
@@ -392,7 +340,7 @@ class ProtectionDegree(models.Model):
         return self.ptd_name
 
 
-# Справочник цветов
+# 7. Справочник цветов
 class Color(models.Model):
     clr_code = models.CharField(
         _("Code"),
@@ -432,6 +380,7 @@ class Color(models.Model):
         ordering = ("clr_name",)
         verbose_name = _("Color")
         verbose_name_plural = _("Colors")
+        db_table_comment = "Общий справочник цветов продукции"
 
     def save(self, *args, **kwargs):
         if not self.clr_code:
@@ -446,65 +395,7 @@ class Color(models.Model):
         return self.clr_name
 
 
-# Цвета товаров серии
-class SeriesProductColor(models.Model):
-    series = models.ForeignKey(
-        Series,
-        on_delete=models.PROTECT,
-        related_name="product_colors",
-    )
-
-    color = models.ForeignKey(
-        Color,
-        on_delete=models.PROTECT,
-        related_name="product_series",
-    )
-
-    class Meta:
-        db_table = "common_series_product_color"
-        constraints = [  # noqa: RUF012
-            models.UniqueConstraint(
-                fields=("series", "color"),
-                name="unique_series_product_color",
-            ),
-        ]
-        verbose_name = _("Series product color")
-        verbose_name_plural = _("Series product colors")
-
-    def __str__(self):
-        return f"{self.series} — {self.color}"
-
-
-# Цвета рамок серии
-class SeriesFrameColor(models.Model):
-    series = models.ForeignKey(
-        Series,
-        on_delete=models.PROTECT,
-        related_name="frame_colors",
-    )
-
-    color = models.ForeignKey(
-        Color,
-        on_delete=models.PROTECT,
-        related_name="frame_series",
-    )
-
-    class Meta:
-        db_table = "common_series_frame_color"
-        constraints = [  # noqa: RUF012
-            models.UniqueConstraint(
-                fields=("series", "color"),
-                name="unique_series_frame_color",
-            ),
-        ]
-        verbose_name = _("Series frame color")
-        verbose_name_plural = _("Series frame colors")
-
-    def __str__(self):
-        return f"{self.series} — {self.color}"
-
-
-# Справочник моделей типов
+# 8. Справочник моделей типов
 class TypeModel(models.Model):
     mdl_code = models.CharField(
         _("Code"),
@@ -544,6 +435,7 @@ class TypeModel(models.Model):
         ordering = ("mdl_name",)
         verbose_name = _("Type model")
         verbose_name_plural = _("Type models")
+        db_table_comment = "Общий справочник типов моделей продукции"
 
     def save(self, *args, **kwargs):
         if not self.mdl_code:
@@ -558,36 +450,7 @@ class TypeModel(models.Model):
         return self.mdl_name
 
 
-# Связь типов и моделей
-class TypeModelType(models.Model):
-    type_model = models.ForeignKey(
-        TypeModel,
-        on_delete=models.PROTECT,
-        related_name="type_links",
-    )
-
-    type = models.ForeignKey(
-        Type,
-        on_delete=models.PROTECT,
-        related_name="model_links",
-    )
-
-    class Meta:
-        db_table = "common_type_model_type"
-        constraints = [  # noqa: RUF012
-            models.UniqueConstraint(
-                fields=("type_model", "type"),
-                name="unique_type_model_type",
-            ),
-        ]
-        verbose_name = _("Type model type")
-        verbose_name_plural = _("Type model types")
-
-    def __str__(self):
-        return f"{self.type_model} — {self.type}"
-
-
-# Справочник исполнений
+# 9. Справочник исполнений
 class Execution(models.Model):
     exc_code = models.CharField(
         _("Code"),
@@ -627,6 +490,7 @@ class Execution(models.Model):
         ordering = ("exc_name",)
         verbose_name = _("Execution")
         verbose_name_plural = _("Executions")
+        db_table_comment = "Общий справочник исполнений продукции"
 
     def save(self, *args, **kwargs):
         if not self.exc_code:
@@ -641,31 +505,57 @@ class Execution(models.Model):
         return self.exc_name
 
 
-# Связь типов и исполнений
-class TypeExecution(models.Model):
-    type = models.ForeignKey(
-        Type,
-        on_delete=models.PROTECT,
-        related_name="execution_links",
+# 10. Справочник вариантов поставки
+class SupplyVariant(models.Model):
+    sup_code = models.CharField(
+        _("Code"),
+        max_length=20,
+        unique=True,
+        editable=False,
     )
 
-    execution = models.ForeignKey(
-        Execution,
-        on_delete=models.PROTECT,
-        related_name="type_links",
+    sup_name = models.CharField(
+        _("Name"),
+        max_length=255,
+    )
+
+    sup_description = models.TextField(
+        _("Description"),
+        null=True,
+        blank=True,
+    )
+
+    sup_status = models.BooleanField(
+        _("Status"),
+        default=True,
+    )
+
+    date_created = models.DateTimeField(
+        _("Date created"),
+        auto_now_add=True,
+    )
+
+    date_updated = models.DateTimeField(
+        _("Date updated"),
+        auto_now=True,
     )
 
     class Meta:
-        db_table = "common_type_execution"
-        constraints = [  # noqa: RUF012
-            models.UniqueConstraint(
-                fields=("type", "execution"),
-                name="unique_type_execution",
-            ),
-        ]
-        verbose_name = _("Type execution")
-        verbose_name_plural = _("Type executions")
+        db_table = "common_supply_variant"
+        ordering = ("sup_name",)
+        verbose_name = _("Supply variant")
+        verbose_name_plural = _("Supply variants")
+        db_table_comment = "Общий справочник вариантов поставки продукции"
+
+    def save(self, *args, **kwargs):
+        if not self.sup_code:
+            self.sup_code = generate_code(
+                SupplyVariant,
+                "sup_code",
+                "sup",
+            )
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.type} — {self.execution}"
+        return self.sup_name
 

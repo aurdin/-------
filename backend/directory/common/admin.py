@@ -1,29 +1,24 @@
 from django.contrib import admin
-from django.http import HttpResponse
-from django.urls import path
+from django.http import HttpResponse  # noqa: F401
+from django.urls import path  # noqa: F401
 from modeltranslation.admin import TranslationAdmin  # type: ignore
-from django.utils.translation import gettext_lazy as _
-from directory.services.export import DirectoryExportService
+from django.utils.translation import gettext_lazy as _  # noqa: F401
+from directory.services.export import DirectoryExportService  # noqa: F401
 from directory.services.export_admin import DirectoryExportAdminMixin
 from .models import (
     Brand,
     Category,
     Group,
-    GroupType,
     Series,
     Type,
-    SeriesType,
     ProtectionDegree,
     Color,
-    SeriesProductColor,
-    SeriesFrameColor,
     TypeModel,
-    TypeModelType,
     Execution,
-    TypeExecution,
+    SupplyVariant,
 ) 
 
-
+# 1. Справочник категорий
 @admin.register(Category)
 class CategoryAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -39,6 +34,7 @@ class CategoryAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     ordering = ("cat_name",)
 
 
+# 2. Справочник групп
 @admin.register(Group)
 class GroupAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -53,7 +49,7 @@ class GroupAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     search_fields = ("grp_code", "grp_name", "grp_description")
     ordering = ("grp_name",)
 
-
+# 3. Справочник брендов
 @admin.register(Brand)
 class BrandAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -74,8 +70,8 @@ class BrandAdmin(DirectoryExportAdminMixin, TranslationAdmin):
 
     ordering = ("brd_name",)
 
-  
 
+ # 4. Справочник серий
 @admin.register(Series)
 class SeriesAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -97,6 +93,7 @@ class SeriesAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     ordering = ("ser_name",)
 
 
+# 5. Справочник типов
 @admin.register(Type)
 class TypeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -112,33 +109,7 @@ class TypeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     ordering = ("typ_name",)
 
 
-@admin.register(GroupType)
-class GroupTypeAdmin(admin.ModelAdmin):
-    list_display = (
-        "group",
-        "type",
-    )
-
-    list_filter = ("group", "type")
-    search_fields = (
-        "group__grp_name",
-        "type__typ_name",
-    )
-    ordering = ("group", "type")
-
-@admin.register(SeriesType)
-class SeriesTypeAdmin(admin.ModelAdmin):
-    list_display = (
-        "series",
-        "type",
-    )
-    list_filter = ("series", "type")
-    search_fields = (
-        "series__ser_name",
-        "type__typ_name",
-    )
-    ordering = ("series", "type")
-
+# 6. Справочник степеней защиты
 @admin.register(ProtectionDegree)
 class ProtectionDegreeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -157,6 +128,7 @@ class ProtectionDegreeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     ordering = ("ptd_name",)  
 
 
+ # 7. Справочник цветов
 @admin.register(Color)
 class ColorAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -174,47 +146,7 @@ class ColorAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     )
     ordering = ("clr_name",)      
 
-
-@admin.register(SeriesProductColor)
-class SeriesProductColorAdmin(admin.ModelAdmin):
-    list_display = (
-        "series",
-        "color",
-    )
-    list_filter = (
-        "series",
-        "color",
-    )
-    search_fields = (
-        "series__ser_name",
-        "color__clr_name",
-    )
-    ordering = (
-        "series__ser_name",
-        "color__clr_name",
-    ) 
-
-    
-@admin.register(SeriesFrameColor)
-class SeriesFrameColorAdmin(admin.ModelAdmin):
-    list_display = (
-        "series",
-        "color",
-    )
-    list_filter = (
-        "series",
-        "color",
-    )
-    search_fields = (
-        "series__ser_name",
-        "color__clr_name",
-    )
-    ordering = (
-        "series__ser_name",
-        "color__clr_name",
-    )       
-
-
+# 8. Справочник моделей типов
 @admin.register(TypeModel)
 class TypeModelAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -233,26 +165,7 @@ class TypeModelAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     ordering = ("mdl_name",)
 
 
-@admin.register(TypeModelType)
-class TypeModelTypeAdmin(admin.ModelAdmin):
-    list_display = (
-        "type_model",
-        "type",
-    )
-    list_filter = (
-        "type_model",
-        "type",
-    )
-    search_fields = (
-        "type_model__mdl_name",
-        "type__typ_name",
-    )
-    ordering = (
-        "type_model__mdl_name",
-        "type__typ_name",
-    ) 
-
-
+# 9. Справочник исполнений
 @admin.register(Execution)
 class ExecutionAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
@@ -271,22 +184,21 @@ class ExecutionAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     ordering = ("exc_name",) 
 
 
-
-@admin.register(TypeExecution)
-class TypeExecutionAdmin(admin.ModelAdmin):
+# 10. Справочник вариантов поставки
+@admin.register(SupplyVariant)
+class SupplyVariantAdmin(DirectoryExportAdminMixin, TranslationAdmin):
     list_display = (
-        "type",
-        "execution",
+        "sup_code",
+        "sup_name",
+        "sup_status",
+        "date_created",
+        "date_updated",
     )
-    list_filter = (
-        "type",
-        "execution",
-    )
+
+    list_filter = ("sup_status",)
     search_fields = (
-        "type__typ_name",
-        "execution__exc_name",
+        "sup_code",
+        "sup_name",
+        "sup_description",
     )
-    ordering = (
-        "type__typ_name",
-        "execution__exc_name",
-    )              
+    ordering = ("sup_name",)

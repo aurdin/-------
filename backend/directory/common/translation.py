@@ -10,6 +10,7 @@ from .models import (
     Color,
     TypeModel,
     Execution,
+    SupplyVariant
 )
 
 
@@ -70,4 +71,8 @@ class TypeModelTranslationOptions(TranslationOptions):
 
 @register(Execution)
 class ExecutionTranslationOptions(TranslationOptions):
-    fields = ("exc_name", "exc_description")        
+    fields = ("exc_name", "exc_description") 
+
+@register(SupplyVariant)
+class SupplyVariantTranslationOptions(TranslationOptions):
+    fields = ("sup_name", "sup_description")       

@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.services.codes import generate_code
 
-
+# Справочник привязки характеристик к группам продукции
 class CharacteristicGroup(models.Model):
     chg_code = models.CharField(
     _("Code"),
@@ -44,6 +44,7 @@ class CharacteristicGroup(models.Model):
         ordering = ["chg_name"]  # noqa: RUF012
         verbose_name = _("Characteristic group")
         verbose_name_plural = _("Characteristic groups")
+        db_table_comment = _("Справочник привязки характеристик к группам продукции")
 
     def __str__(self):
         return self.chg_name
@@ -98,6 +99,7 @@ class Unit(models.Model):
         ordering = ["unt_name"]  # noqa: RUF012
         verbose_name = _("Unit")
         verbose_name_plural = _("Units")
+        db_table_comment = "Справочник единиц измерения"
 
     def __str__(self):
         return self.unt_name
@@ -111,7 +113,7 @@ class Unit(models.Model):
             )
         super().save(*args, **kwargs) 
 
-
+# Справочник характеристик продукции
 class Characteristic(models.Model):
     chr_code = models.CharField(
         _("Code"),
@@ -158,9 +160,10 @@ class Characteristic(models.Model):
 
     class Meta:
         db_table = "characteristics"
-        ordering = ["chr_name"]
+        ordering = ["chr_name"]  # noqa: RUF012
         verbose_name = _("Characteristic")
         verbose_name_plural = _("Characteristics")
+        db_table_comment = "Справочник характеристик продукции"
 
     def __str__(self):
         return self.chr_name
@@ -174,7 +177,7 @@ class Characteristic(models.Model):
             )
         super().save(*args, **kwargs)
 
-
+# Справочник типов характеристик продукции
 class TypeCharacteristic(models.Model):
     tch_type = models.ForeignKey(
         "common.Type",
@@ -203,10 +206,11 @@ class TypeCharacteristic(models.Model):
 
     class Meta:
         db_table = "type_characteristics"
-        ordering = ["tch_type", "tch_characteristic"]
+        ordering = ["tch_type", "tch_characteristic"]  # noqa: RUF012
         verbose_name = _("Type characteristic")
         verbose_name_plural = _("Type characteristics")
-        constraints = [
+        db_table_comment = "Справочник типов характеристик продукции"
+        constraints = [  # noqa: RUF012
             models.UniqueConstraint(
                 fields=("tch_type", "tch_characteristic"),
                 name="unique_type_characteristic",
