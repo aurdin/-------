@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render
 from django.urls import path, reverse
 from django.utils.translation import gettext_lazy as _
 
-from openpyxl.utils.exceptions import InvalidFileException
+from openpyxl.utils.exceptions import InvalidFileException # type: ignore
 
 from .export import DirectoryExportService
 from .import_service import DirectoryImportService

@@ -23,7 +23,7 @@ msgstr "Каталог"
 
 #: directory/common/apps.py:9
 msgid "Common"
-msgstr "Загальні довідники"
+msgstr "Довідники"
 
 #: directory/common/models.py:39
 msgid "Category"
@@ -174,9 +174,17 @@ msgstr "Характеристики типу"
 msgid "Characteristic"
 msgstr "Характеристика"
 
-msgid "Export to Excel"
-msgstr "Експорт в Excel"
+msgid "Export"
+msgstr "Експорт"
 
-msgid "Import from Excel"
-msgstr "Імпорт з Excel"
+msgid "Import"
+msgstr "Імпорт"
 
+msgid "Relations"
+msgstr "Відносини"
+
+msgid "Supply variant"
+msgstr "Варіант постачання"
+
+msgid "Supply variants"
+msgstr "Варіанти постачання"
