@@ -25,8 +25,8 @@ class GroupType(models.Model):
                 name="unique_group_type",
             ),
         ]
-        verbose_name = _("Group type")
-        verbose_name_plural = _("Group types")
+        verbose_name = _("Group — type relationship")
+        verbose_name_plural = _("Group — type relationships")
         db_table_comment = "Связь групп и типов продукции"
 
     def __str__(self):
@@ -55,8 +55,8 @@ class SeriesType(models.Model):
                 name="unique_series_type",
             ),
         ]
-        verbose_name = _("Series type")
-        verbose_name_plural = _("Series types")
+        verbose_name = _("Series — type relationship")
+        verbose_name_plural = _("Series — type relationships")
         db_table_comment = "Связь серий и типов продукции"
 
     def __str__(self):
@@ -85,8 +85,8 @@ class SeriesProductColor(models.Model):
                 name="unique_series_product_color",
             ),
         ]
-        verbose_name = _("Series product color")
-        verbose_name_plural = _("Series product colors")
+        verbose_name = _("Series — product color relationship")
+        verbose_name_plural = _("Series — product color relationships")
         db_table_comment = "Связь серий и цветов продукции"
 
     def __str__(self):
@@ -115,8 +115,8 @@ class SeriesFrameColor(models.Model):
                 name="unique_series_frame_color",
             ),
         ]
-        verbose_name = _("Series frame color")
-        verbose_name_plural = _("Series frame colors")
+        verbose_name = _("Series — frame color relationship")
+        verbose_name_plural = _("Series — frame color relationships")
         db_table_comment = "Связь серий и цветов рамок продукции"
 
     def __str__(self):
@@ -145,8 +145,8 @@ class TypeModelType(models.Model):
                 name="unique_type_model_type",
             ),
         ]
-        verbose_name = _("Type model type")
-        verbose_name_plural = _("Type model types")
+        verbose_name = _("Model — type relationship")
+        verbose_name_plural = _("Model — type relationships")
         db_table_comment = "Связь типов и моделей продукции"
 
     def __str__(self):
@@ -175,8 +175,8 @@ class TypeExecution(models.Model):
                 name="unique_type_execution",
             ),
         ]
-        verbose_name = _("Type execution")
-        verbose_name_plural = _("Type executions")
+        verbose_name = _("Type — execution relationship")
+        verbose_name_plural = _("Type — execution relationships")
         db_table_comment = "Связь типов и исполнений продукции"
 
     def __str__(self):

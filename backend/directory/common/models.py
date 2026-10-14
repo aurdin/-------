@@ -39,12 +39,31 @@ class Category(models.Model):
         auto_now=True,
     )
 
+
     class Meta:
         db_table = "common_category"
         ordering = ("cat_name",)
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
         db_table_comment = "Общий справочник категорий продукции"
+
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["cat_name_en"],
+                condition=~models.Q(cat_name_en=""),
+                name="uq_category_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["cat_name_ru"],
+                condition=~models.Q(cat_name_ru=""),
+                name="uq_category_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["cat_name_uk"],
+                condition=~models.Q(cat_name_uk=""),
+                name="uq_category_name_uk",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.cat_code:
@@ -100,6 +119,23 @@ class Group(models.Model):
         verbose_name = _("Group")
         verbose_name_plural = _("Groups")
         db_table_comment = "Общий справочник групп продукции"
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["grp_name_en"],
+                condition=~models.Q(grp_name_en=""),
+                name="uq_group_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["grp_name_ru"],
+                condition=~models.Q(grp_name_ru=""),
+                name="uq_group_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["grp_name_uk"],
+                condition=~models.Q(grp_name_uk=""),
+                name="uq_group_name_uk",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.grp_code:
@@ -155,6 +191,24 @@ class Brand(models.Model):
         verbose_name = _("Brand")
         verbose_name_plural = _("Brands")
         db_table_comment = "Общий справочник брендов продукции"
+
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["brd_name_en"],
+                condition=~models.Q(brd_name_en=""),
+                name="uq_brand_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["brd_name_ru"],
+                condition=~models.Q(brd_name_ru=""),
+                name="uq_brand_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["brd_name_uk"],
+                condition=~models.Q(brd_name_uk=""),
+                name="uq_brand_name_uk",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.brd_code:
@@ -217,6 +271,24 @@ class Series(models.Model):
         verbose_name_plural = _("Series")
         db_table_comment = "Общий справочник серий продукции"
 
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["ser_name_en"],
+                condition=~models.Q(ser_name_en=""),
+                name="uq_series_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["ser_name_ru"],
+                condition=~models.Q(ser_name_ru=""),
+                name="uq_series_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["ser_name_uk"],
+                condition=~models.Q(ser_name_uk=""),
+                name="uq_series_name_uk",
+            ),
+        ]
+
     def save(self, *args, **kwargs):
         if not self.ser_code:
             self.ser_code = generate_code(
@@ -271,6 +343,23 @@ class Type(models.Model):
         verbose_name = _("Type")
         verbose_name_plural = _("Types")
         db_table_comment = "Общий справочник типов продукции"
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["typ_name_en"],
+                condition=~models.Q(typ_name_en=""),
+                name="uq_type_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["typ_name_ru"],
+                condition=~models.Q(typ_name_ru=""),
+                name="uq_type_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["typ_name_uk"],
+                condition=~models.Q(typ_name_uk=""),
+                name="uq_type_name_uk",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.typ_code:
@@ -382,6 +471,24 @@ class Color(models.Model):
         verbose_name_plural = _("Colors")
         db_table_comment = "Общий справочник цветов продукции"
 
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["clr_name_en"],
+                condition=~models.Q(clr_name_en=""),
+                name="uq_color_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["clr_name_ru"],
+                condition=~models.Q(clr_name_ru=""),
+                name="uq_color_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["clr_name_uk"],
+                condition=~models.Q(clr_name_uk=""),
+                name="uq_color_name_uk",
+            ),
+        ]
+
     def save(self, *args, **kwargs):
         if not self.clr_code:
             self.clr_code = generate_code(
@@ -436,6 +543,24 @@ class TypeModel(models.Model):
         verbose_name = _("Type model")
         verbose_name_plural = _("Type models")
         db_table_comment = "Общий справочник типов моделей продукции"
+
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["mdl_name_en"],
+                condition=~models.Q(mdl_name_en=""),
+                name="uq_type_model_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["mdl_name_ru"],
+                condition=~models.Q(mdl_name_ru=""),
+                name="uq_type_model_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["mdl_name_uk"],
+                condition=~models.Q(mdl_name_uk=""),
+                name="uq_type_model_name_uk",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.mdl_code:
@@ -492,6 +617,24 @@ class Execution(models.Model):
         verbose_name_plural = _("Executions")
         db_table_comment = "Общий справочник исполнений продукции"
 
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["exc_name_en"],
+                condition=~models.Q(exc_name_en=""),
+                name="uq_execution_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["exc_name_ru"],
+                condition=~models.Q(exc_name_ru=""),
+                name="uq_execution_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["exc_name_uk"],
+                condition=~models.Q(exc_name_uk=""),
+                name="uq_execution_name_uk",
+            ),
+        ]
+
     def save(self, *args, **kwargs):
         if not self.exc_code:
             self.exc_code = generate_code(
@@ -546,6 +689,23 @@ class SupplyVariant(models.Model):
         verbose_name = _("Supply variant")
         verbose_name_plural = _("Supply variants")
         db_table_comment = "Общий справочник вариантов поставки продукции"
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=["sup_name_en"],
+                condition=~models.Q(sup_name_en=""),
+                name="uq_supply_variant_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=["sup_name_ru"],
+                condition=~models.Q(sup_name_ru=""),
+                name="uq_supply_variant_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=["sup_name_uk"],
+                condition=~models.Q(sup_name_uk=""),
+                name="uq_supply_variant_name_uk",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.sup_code:

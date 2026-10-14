@@ -25,8 +25,7 @@ class CategoryAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "cat_code",
         "cat_name",
         "cat_status",
-        "date_created",
-        "date_updated",
+        "cat_description",
     )
 
     list_filter = ("cat_status",)
@@ -41,8 +40,7 @@ class GroupAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "grp_code",
         "grp_name",
         "grp_status",
-        "date_created",
-        "date_updated",
+        "grp_description",
     )
 
     list_filter = ("grp_status",)
@@ -56,8 +54,7 @@ class BrandAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "brd_code",
         "brd_name",
         "brd_status",
-        "date_created",
-        "date_updated",
+        "brd_description",
     )
 
     list_filter = ("brd_status",)
@@ -79,8 +76,7 @@ class SeriesAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "brand",
         "ser_name",
         "ser_status",
-        "date_created",
-        "date_updated",
+        "ser_description",
     )
 
     list_filter = ("ser_status", "brand")
@@ -100,8 +96,7 @@ class TypeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "typ_code",
         "typ_name",
         "typ_status",
-        "date_created",
-        "date_updated",
+        "typ_description",
     )
 
     list_filter = ("typ_status",)
@@ -116,8 +111,7 @@ class ProtectionDegreeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "ptd_code",
         "ptd_name",
         "ptd_status",
-        "date_created",
-        "date_updated",
+        "ptd_description",
     )
     list_filter = ("ptd_status",)
     search_fields = (
@@ -135,8 +129,7 @@ class ColorAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "clr_code",
         "clr_name",
         "clr_status",
-        "date_created",
-        "date_updated",
+        "clr_description",
     )
     list_filter = ("clr_status",)
     search_fields = (
@@ -153,8 +146,7 @@ class TypeModelAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "mdl_code",
         "mdl_name",
         "mdl_status",
-        "date_created",
-        "date_updated",
+        "mdl_description",
     )
     list_filter = ("mdl_status",)
     search_fields = (
@@ -172,8 +164,7 @@ class ExecutionAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "exc_code",
         "exc_name",
         "exc_status",
-        "date_created",
-        "date_updated",
+        "exc_description",
     )
     list_filter = ("exc_status",)
     search_fields = (
@@ -191,8 +182,7 @@ class SupplyVariantAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "sup_code",
         "sup_name",
         "sup_status",
-        "date_created",
-        "date_updated",
+        "sup_description",
     )
 
     list_filter = ("sup_status",)

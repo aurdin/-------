@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.services.codes import generate_code
@@ -44,7 +45,26 @@ class CharacteristicGroup(models.Model):
         ordering = ["chg_name"]  # noqa: RUF012
         verbose_name = _("Characteristic group")
         verbose_name_plural = _("Characteristic groups")
-        db_table_comment = _("Справочник привязки характеристик к группам продукции")
+        db_table_comment = "Справочник привязки характеристик к группам продукции"
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=("chg_name_en",),
+                condition=~Q(chg_name_en=""),
+                name="uq_characteristic_group_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=("chg_name_ru",),
+                condition=~Q(chg_name_ru=""),
+                name="uq_characteristic_group_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=("chg_name_uk",),
+                condition=~Q(chg_name_uk=""),
+                name="uq_characteristic_group_name_uk",
+            ),
+        ]
+
+        
 
     def __str__(self):
         return self.chg_name
@@ -100,6 +120,23 @@ class Unit(models.Model):
         verbose_name = _("Unit")
         verbose_name_plural = _("Units")
         db_table_comment = "Справочник единиц измерения"
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=("unt_name_en",),
+                condition=~Q(unt_name_en=""),
+                name="uq_unit_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=("unt_name_ru",),
+                condition=~Q(unt_name_ru=""),
+                name="uq_unit_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=("unt_name_uk",),
+                condition=~Q(unt_name_uk=""),
+                name="uq_unit_name_uk",
+            ),
+        ]
 
     def __str__(self):
         return self.unt_name
@@ -164,6 +201,23 @@ class Characteristic(models.Model):
         verbose_name = _("Characteristic")
         verbose_name_plural = _("Characteristics")
         db_table_comment = "Справочник характеристик продукции"
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=("chr_name_en",),
+                condition=~Q(chr_name_en=""),
+                name="uq_characteristic_name_en",
+            ),
+            models.UniqueConstraint(
+                fields=("chr_name_ru",),
+                condition=~Q(chr_name_ru=""),
+                name="uq_characteristic_name_ru",
+            ),
+            models.UniqueConstraint(
+                fields=("chr_name_uk",),
+                condition=~Q(chr_name_uk=""),
+                name="uq_characteristic_name_uk",
+            ),
+        ]
 
     def __str__(self):
         return self.chr_name

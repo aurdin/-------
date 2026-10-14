@@ -1,0 +1,140 @@
+{% load i18n static %}
+
+{% if cl.search_fields %}
+<style>
+    #searchbar-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    #searchbar {
+        box-sizing: border-box;
+        padding-right: 28px;
+    }
+
+    #searchbar-clear {
+        position: absolute;
+        top: 50%;
+        right: 4px;
+        transform: translateY(-50%);
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: var(--body-quiet-color, #666);
+        font-size: 19px;
+        line-height: 22px;
+        cursor: pointer;
+    }
+
+    #searchbar-clear:hover {
+        color: var(--body-fg, #000);
+    }
+
+    #searchbar-clear:focus-visible {
+        outline: 2px solid var(--primary, #417690);
+        outline-offset: 1px;
+    }
+
+    #searchbar-clear[hidden] {
+        display: none;
+    }
+</style>
+
+<div id="toolbar">
+    <form id="changelist-search" method="get" role="search">
+        <div>
+            <label for="searchbar">
+                <img src="{% static 'admin/img/search.svg' %}" alt="Search">
+            </label>
+
+            <span id="searchbar-wrapper">
+                <input
+                    type="text"
+                    size="40"
+                    name="{{ search_var }}"
+                    value="{{ cl.query }}"
+                    id="searchbar"
+                    {% if cl.search_help_text %}
+                        aria-describedby="searchbar_helptext"
+                    {% endif %}
+                >
+
+                <button
+                    type="button"
+                    id="searchbar-clear"
+                    title="{% translate 'Clear search' %}"
+                    aria-label="{% translate 'Clear search' %}"
+                    {% if not cl.query %}hidden{% endif %}
+                >×</button>
+            </span>
+
+            <input type="submit" value="{% translate 'Search' %}">
+
+            {% if show_result_count %}
+                <span class="small quiet">
+                    {% blocktranslate count counter=cl.result_count %}
+                        {{ counter }} result
+                    {% plural %}
+                        {{ counter }} results
+                    {% endblocktranslate %}
+                    (
+                    <a href="?{% if cl.is_popup %}{{ is_popup_var }}=1{% if cl.add_facets %}&amp;{% endif %}{% endif %}{% if cl.add_facets %}{{ is_facets_var }}{% endif %}">
+                        {% if cl.show_full_result_count %}
+                            {% blocktranslate with full_result_count=cl.full_result_count %}
+                                {{ full_result_count }} total
+                            {% endblocktranslate %}
+                        {% else %}
+                            {% translate "Show all" %}
+                        {% endif %}
+                    </a>
+                    )
+                </span>
+            {% endif %}
+
+            {% for pair in cl.params.items %}
+                {% if pair.0 != search_var %}
+                    <input
+                        type="hidden"
+                        name="{{ pair.0 }}"
+                        value="{{ pair.1 }}"
+                    >
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if cl.search_help_text %}
+            <br class="clear">
+            <div class="help" id="searchbar_helptext">
+                {{ cl.search_help_text }}
+            </div>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("searchbar");
+        const clearButton = document.getElementById("searchbar-clear");
+        const searchForm = document.getElementById("changelist-search");
+
+        if (!searchInput || !clearButton || !searchForm) {
+            return;
+        }
+
+        function updateClearButton() {
+            clearButton.hidden = searchInput.value.length === 0;
+        }
+
+        searchInput.addEventListener("input", updateClearButton);
+
+        clearButton.addEventListener("click", function () {
+            searchInput.value = "";
+            searchForm.requestSubmit();
+        });
+
+        updateClearButton();
+    });
+</script>
+{% endif %}

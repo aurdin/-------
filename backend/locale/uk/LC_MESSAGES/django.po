@@ -51,7 +51,7 @@ msgstr "Бренди"
 
 #: directory/common/models.py:180 directory/common/models.py:181
 msgid "Series"
-msgstr "Серія"
+msgstr "Серії"
 
 #: directory/common/models.py:228
 msgid "Type"
@@ -123,6 +123,44 @@ msgstr "Зв’язок типу з виконанням"
 msgid "Type executions"
 msgstr "Зв’язки типів із виконаннями"
 
+# Зв’язки довідників
+
+msgid "Group — type relationship"
+msgstr "Зв’язок групи з типом"
+
+msgid "Group — type relationships"
+msgstr "Зв’язки груп і типів"
+
+msgid "Series — type relationship"
+msgstr "Зв’язок серії з типом"
+
+msgid "Series — type relationships"
+msgstr "Зв’язки серій і типів"
+
+msgid "Series — product color relationship"
+msgstr "Колір продукції серії"
+
+msgid "Series — product color relationships"
+msgstr "Кольори продукції серії"
+
+msgid "Series — frame color relationship"
+msgstr "Колір рамки серії"
+
+msgid "Series — frame color relationships"
+msgstr "Кольори рамок серії"
+
+msgid "Model — type relationship"
+msgstr "Зв’язок моделі з типом"
+
+msgid "Model — type relationships"
+msgstr "Зв’язки моделей і типів"
+
+msgid "Type — execution relationship"
+msgstr "Зв’язок типу з виконанням"
+
+msgid "Type — execution relationships"
+msgstr "Зв’язки типів і виконань"
+
 #: directory/characteristics/models.py
 msgid "Characteristic group"
 msgstr "Група характеристик"
@@ -165,10 +203,10 @@ msgid "Date updated"
 msgstr "Дата зміни"
 
 msgid "Type characteristic"
-msgstr "Характеристика типу"
+msgstr "Тип характеристики"
 
 msgid "Type characteristics"
-msgstr "Характеристики типу"
+msgstr "Типи характеристик"
 
 #: directory/characteristics/models.py
 msgid "Characteristic"
