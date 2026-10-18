@@ -1,5 +1,6 @@
 """Административный интерфейс для справочников связей SmEl."""
 from django.contrib import admin
+from directory.services.export_admin import DirectoryExportAdminMixin
 
 from .models import (
     GroupType,
@@ -12,7 +13,7 @@ from .models import (
 
 
 @admin.register(GroupType)
-class GroupTypeAdmin(admin.ModelAdmin):
+class GroupTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
     list_display = ("group", "type")
     list_filter = ("group", "type")
     search_fields = (
@@ -23,7 +24,7 @@ class GroupTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(SeriesType)
-class SeriesTypeAdmin(admin.ModelAdmin):
+class SeriesTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
     list_display = ("series", "type")
     list_filter = ("series", "type")
     search_fields = (
@@ -34,7 +35,7 @@ class SeriesTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(SeriesProductColor)
-class SeriesProductColorAdmin(admin.ModelAdmin):
+class SeriesProductColorAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
     list_display = ("series", "color")
     list_filter = ("series", "color")
     search_fields = (
@@ -48,7 +49,7 @@ class SeriesProductColorAdmin(admin.ModelAdmin):
 
 
 @admin.register(SeriesFrameColor)
-class SeriesFrameColorAdmin(admin.ModelAdmin):
+class SeriesFrameColorAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
     list_display = ("series", "color")
     list_filter = ("series", "color")
     search_fields = (
@@ -62,7 +63,7 @@ class SeriesFrameColorAdmin(admin.ModelAdmin):
 
 
 @admin.register(TypeModelType)
-class TypeModelTypeAdmin(admin.ModelAdmin):
+class TypeModelTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
     list_display = ("type_model", "type")
     list_filter = ("type_model", "type")
     search_fields = (
@@ -76,7 +77,7 @@ class TypeModelTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(TypeExecution)
-class TypeExecutionAdmin(admin.ModelAdmin):
+class TypeExecutionAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
     list_display = ("type", "execution")
     list_filter = ("type", "execution")
     search_fields = (

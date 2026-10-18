@@ -5,6 +5,17 @@ from modeltranslation.admin import TranslationAdmin  # type: ignore
 from django.utils.translation import gettext_lazy as _  # noqa: F401
 from directory.services.export import DirectoryExportService  # noqa: F401
 from directory.services.export_admin import DirectoryExportAdminMixin
+from .forms import (
+    BrandForm,
+    CategoryForm,
+    ColorForm,
+    ExecutionForm,
+    GroupForm,
+    SeriesForm,
+    SupplyVariantForm,
+    TypeForm,
+    TypeModelForm,
+)
 from .models import (
     Brand,
     Category,
@@ -21,6 +32,7 @@ from .models import (
 # 1. Справочник категорий
 @admin.register(Category)
 class CategoryAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = CategoryForm
     list_display = (
         "cat_code",
         "cat_name",
@@ -36,6 +48,7 @@ class CategoryAdmin(DirectoryExportAdminMixin, TranslationAdmin):
 # 2. Справочник групп
 @admin.register(Group)
 class GroupAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = GroupForm
     list_display = (
         "grp_code",
         "grp_name",
@@ -50,6 +63,7 @@ class GroupAdmin(DirectoryExportAdminMixin, TranslationAdmin):
 # 3. Справочник брендов
 @admin.register(Brand)
 class BrandAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = BrandForm
     list_display = (
         "brd_code",
         "brd_name",
@@ -71,6 +85,7 @@ class BrandAdmin(DirectoryExportAdminMixin, TranslationAdmin):
  # 4. Справочник серий
 @admin.register(Series)
 class SeriesAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = SeriesForm
     list_display = (
         "ser_code",
         "brand",
@@ -92,6 +107,7 @@ class SeriesAdmin(DirectoryExportAdminMixin, TranslationAdmin):
 # 5. Справочник типов
 @admin.register(Type)
 class TypeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = TypeForm
     list_display = (
         "typ_code",
         "typ_name",
@@ -125,6 +141,7 @@ class ProtectionDegreeAdmin(DirectoryExportAdminMixin, TranslationAdmin):
  # 7. Справочник цветов
 @admin.register(Color)
 class ColorAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = ColorForm
     list_display = (
         "clr_code",
         "clr_name",
@@ -142,6 +159,7 @@ class ColorAdmin(DirectoryExportAdminMixin, TranslationAdmin):
 # 8. Справочник моделей типов
 @admin.register(TypeModel)
 class TypeModelAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = TypeModelForm
     list_display = (
         "mdl_code",
         "mdl_name",
@@ -160,6 +178,7 @@ class TypeModelAdmin(DirectoryExportAdminMixin, TranslationAdmin):
 # 9. Справочник исполнений
 @admin.register(Execution)
 class ExecutionAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = ExecutionForm
     list_display = (
         "exc_code",
         "exc_name",
@@ -178,6 +197,7 @@ class ExecutionAdmin(DirectoryExportAdminMixin, TranslationAdmin):
 # 10. Справочник вариантов поставки
 @admin.register(SupplyVariant)
 class SupplyVariantAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = SupplyVariantForm
     list_display = (
         "sup_code",
         "sup_name",

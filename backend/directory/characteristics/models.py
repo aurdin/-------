@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.services.codes import generate_code
 
-# Справочник привязки характеристик к группам продукции
+# Справочник групп характеристик
 class CharacteristicGroup(models.Model):
     chg_code = models.CharField(
     _("Code"),
@@ -45,7 +45,7 @@ class CharacteristicGroup(models.Model):
         ordering = ["chg_name"]  # noqa: RUF012
         verbose_name = _("Characteristic group")
         verbose_name_plural = _("Characteristic groups")
-        db_table_comment = "Справочник привязки характеристик к группам продукции"
+        db_table_comment = "Справочник групп характеристик"
         constraints = [  # noqa: RUF012
             models.UniqueConstraint(
                 fields=("chg_name_en",),
@@ -231,7 +231,7 @@ class Characteristic(models.Model):
             )
         super().save(*args, **kwargs)
 
-# Справочник типов характеристик продукции
+# Справочник привязки характеристик к типам продукции
 class TypeCharacteristic(models.Model):
     tch_type = models.ForeignKey(
         "common.Type",
@@ -261,9 +261,9 @@ class TypeCharacteristic(models.Model):
     class Meta:
         db_table = "type_characteristics"
         ordering = ["tch_type", "tch_characteristic"]  # noqa: RUF012
-        verbose_name = _("Type characteristic")
-        verbose_name_plural = _("Type characteristics")
-        db_table_comment = "Справочник типов характеристик продукции"
+        verbose_name = _("Type — characteristic relationship")
+        verbose_name_plural = _("Type — characteristic relationships")
+        db_table_comment = "Справочник привязки характеристик к типам продукции"
         constraints = [  # noqa: RUF012
             models.UniqueConstraint(
                 fields=("tch_type", "tch_characteristic"),

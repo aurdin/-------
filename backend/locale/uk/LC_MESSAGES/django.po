@@ -226,3 +226,21 @@ msgstr "Варіант постачання"
 
 msgid "Supply variants"
 msgstr "Варіанти постачання"
+
+msgid "Type — characteristic relationship"
+msgstr "Зв'язок Характеристика-Тип"
+
+msgid "Type — characteristic relationships"
+msgstr "Зв'язки характеристик та типів"
+
+msgid "A characteristic group with this name already exists."
+msgstr "Група характеристик із такою назвою вже існує."
+
+msgid "A unit with this name already exists."
+msgstr "Одиниця вимірювання з такою назвою вже існує."
+
+msgid "A characteristic with this name already exists."
+msgstr "Характеристика з такою назвою вже існує."
+
+msgid "An entry with this name already exists."
+msgstr "Запис із такою назвою вже існує."

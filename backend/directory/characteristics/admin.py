@@ -1,5 +1,11 @@
 from django.contrib import admin
 from modeltranslation.admin import TranslationAdmin  # type: ignore
+from directory.services.export_admin import DirectoryExportAdminMixin
+from .forms import (
+    CharacteristicForm,
+    CharacteristicGroupForm,
+    UnitForm,
+)
 
 from .models import (
     Characteristic,
@@ -10,7 +16,8 @@ from .models import (
 
 
 @admin.register(CharacteristicGroup)
-class CharacteristicGroupAdmin(TranslationAdmin):
+class CharacteristicGroupAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = CharacteristicGroupForm
     list_display = (
         "chg_code",
         "chg_name",
@@ -34,7 +41,8 @@ class CharacteristicGroupAdmin(TranslationAdmin):
 
 
 @admin.register(Unit)
-class UnitAdmin(TranslationAdmin):
+class UnitAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = UnitForm
     list_display = (
         "unt_code",
         "unt_name",
@@ -59,7 +67,8 @@ class UnitAdmin(TranslationAdmin):
 
 
 @admin.register(Characteristic)
-class CharacteristicAdmin(TranslationAdmin):
+class CharacteristicAdmin(DirectoryExportAdminMixin, TranslationAdmin):
+    form = CharacteristicForm
     list_display = (
         "chr_code",
         "chr_name",
@@ -88,7 +97,7 @@ class CharacteristicAdmin(TranslationAdmin):
 
 
 @admin.register(TypeCharacteristic)
-class TypeCharacteristicAdmin(admin.ModelAdmin):
+class TypeCharacteristicAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
     list_display = (
         "tch_type",
         "tch_characteristic",
