@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 
 # 1. Связь групп и типов
 class GroupType(models.Model):
+    status = models.BooleanField(default=True)
+
     group = models.ForeignKey(
         "common.Group",
         on_delete=models.PROTECT,
@@ -35,6 +37,8 @@ class GroupType(models.Model):
 
 # 2. Связь серии и типа
 class SeriesType(models.Model):
+    status = models.BooleanField(default=True)
+
     series = models.ForeignKey(
         "common.Series",
         on_delete=models.PROTECT,
@@ -65,6 +69,8 @@ class SeriesType(models.Model):
 
 # 3. Цвета товаров серии
 class SeriesProductColor(models.Model):
+    status = models.BooleanField(default=True)
+
     series = models.ForeignKey(
         "common.Series",
         on_delete=models.PROTECT,
@@ -95,6 +101,8 @@ class SeriesProductColor(models.Model):
 
 # 4. Цвета рамок серии
 class SeriesFrameColor(models.Model):
+    status = models.BooleanField(default=True)
+
     series = models.ForeignKey(
         "common.Series",
         on_delete=models.PROTECT,
@@ -125,6 +133,8 @@ class SeriesFrameColor(models.Model):
 
 # 5. Связь типов и моделей
 class TypeModelType(models.Model):
+    status = models.BooleanField(default=True)
+
     type_model = models.ForeignKey(
         "common.TypeModel",
         on_delete=models.PROTECT,
@@ -155,6 +165,8 @@ class TypeModelType(models.Model):
 
 # 6. Связь типов и исполнений
 class TypeExecution(models.Model):
+    status = models.BooleanField(default=True)
+
     type = models.ForeignKey(
         "common.Type",
         on_delete=models.PROTECT,

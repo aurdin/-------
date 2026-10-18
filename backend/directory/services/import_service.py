@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import  models, transaction
 from openpyxl import load_workbook
+from apps.catalog.services.codes import generate_code
 
 
 class DirectoryImportService:
@@ -115,22 +116,25 @@ class DirectoryImportService:
     @staticmethod
     def build_instance(model, prepared_row):
         """Создаёт или получает объект без сохранения в БД."""
-
         instance = prepared_row["instance"]
-
         if instance is not None:
             return instance
 
+        code_field = DirectoryImportService.get_code_field(model)
         code = prepared_row["code"]
 
         if code:
-            return model(
-                **{
-                    DirectoryImportService.get_code_field(model).name: code
-                }
-            )
+            return model(**{code_field.name: code})
 
-        return model() 
+        instance = model()
+        prefix = model._meta.get_field(code_field.name).name.rsplit("_", 1)[0]
+
+        setattr(
+            instance,
+            code_field.name,
+            generate_code(model, code_field.name, prefix),
+        )
+        return instance
 
     @staticmethod
     def prepare_instance(model, prepared_row):

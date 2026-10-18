@@ -14,8 +14,8 @@ from .models import (
 
 @admin.register(GroupType)
 class GroupTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
-    list_display = ("group", "type")
-    list_filter = ("group", "type")
+    list_display = ("group", "type", "status")
+    list_filter = ("group", "type", "status")
     search_fields = (
         "group__grp_name",
         "type__typ_name",
@@ -25,8 +25,8 @@ class GroupTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
 
 @admin.register(SeriesType)
 class SeriesTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
-    list_display = ("series", "type")
-    list_filter = ("series", "type")
+    list_display = ("series", "type", "status")
+    list_filter = ("series", "type", "status")
     search_fields = (
         "series__ser_name",
         "type__typ_name",
@@ -36,8 +36,8 @@ class SeriesTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
 
 @admin.register(SeriesProductColor)
 class SeriesProductColorAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
-    list_display = ("series", "color")
-    list_filter = ("series", "color")
+    list_display = ("series", "color", "status")
+    list_filter = ("series", "color", "status")
     search_fields = (
         "series__ser_name",
         "color__clr_name",
@@ -50,8 +50,8 @@ class SeriesProductColorAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
 
 @admin.register(SeriesFrameColor)
 class SeriesFrameColorAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
-    list_display = ("series", "color")
-    list_filter = ("series", "color")
+    list_display = ("series", "color", "status")
+    list_filter = ("series", "color", "status")
     search_fields = (
         "series__ser_name",
         "color__clr_name",
@@ -64,8 +64,8 @@ class SeriesFrameColorAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
 
 @admin.register(TypeModelType)
 class TypeModelTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
-    list_display = ("type_model", "type")
-    list_filter = ("type_model", "type")
+    list_display = ("type_model", "type", "status")
+    list_filter = ("type_model", "type", "status")
     search_fields = (
         "type_model__mdl_name",
         "type__typ_name",
@@ -78,8 +78,8 @@ class TypeModelTypeAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
 
 @admin.register(TypeExecution)
 class TypeExecutionAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
-    list_display = ("type", "execution")
-    list_filter = ("type", "execution")
+    list_display = ("type", "execution", "status")
+    list_filter = ("type", "execution", "status")
     search_fields = (
         "type__typ_name",
         "execution__exc_name",
