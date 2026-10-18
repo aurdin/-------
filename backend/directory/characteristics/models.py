@@ -231,45 +231,66 @@ class Characteristic(models.Model):
             )
         super().save(*args, **kwargs)
 
-# Справочник привязки характеристик к типам продукции
-class TypeCharacteristic(models.Model):
-    tch_type = models.ForeignKey(
-        "common.Type",
-        on_delete=models.PROTECT,
-        related_name="type_characteristics",
-        verbose_name=_("Type"),
+# Справочник значений характеристик продукции
+
+class CharacteristicValue(models.Model):
+    cv_code = models.CharField(
+    _("Code"),
+    max_length=20,
+    unique=True,
+    editable=False,
     )
-    tch_characteristic = models.ForeignKey(
+
+
+    cv_characteristic = models.ForeignKey(
         Characteristic,
         on_delete=models.PROTECT,
-        related_name="type_characteristics",
+        related_name="values",
         verbose_name=_("Characteristic"),
     )
-    tch_status = models.BooleanField(
+
+    cv_value = models.CharField(
+        _("Value"),
+        max_length=255,
+    )
+
+    cv_status = models.BooleanField(
         _("Status"),
         default=True,
     )
+
     date_created = models.DateTimeField(
         _("Date created"),
         auto_now_add=True,
     )
+
     date_updated = models.DateTimeField(
         _("Date updated"),
         auto_now=True,
     )
 
     class Meta:
-        db_table = "type_characteristics"
-        ordering = ["tch_type", "tch_characteristic"]  # noqa: RUF012
-        verbose_name = _("Type — characteristic relationship")
-        verbose_name_plural = _("Type — characteristic relationships")
-        db_table_comment = "Справочник привязки характеристик к типам продукции"
+        db_table = "characteristics_value"
+        ordering = ("cv_characteristic", "cv_value") 
+        verbose_name = _("Characteristic value")
+        verbose_name_plural = _("Characteristic values")
+        db_table_comment = "Справочник значений характеристик продукции"
         constraints = [  # noqa: RUF012
             models.UniqueConstraint(
-                fields=("tch_type", "tch_characteristic"),
-                name="unique_type_characteristic",
+                fields=("cv_characteristic", "cv_value"),
+                name="uq_characteristic_value",
             ),
         ]
 
     def __str__(self):
-        return f"{self.tch_type} — {self.tch_characteristic}"                       
+        return f"{self.cv_characteristic}: {self.cv_value}"
+
+    def save(self, *args, **kwargs):
+        if not self.cv_code:
+            self.cv_code = generate_code(
+                self.__class__,
+                "cv_code",
+                "cv",
+            )
+        super().save(*args, **kwargs)
+

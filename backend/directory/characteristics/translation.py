@@ -3,7 +3,6 @@ from modeltranslation.translator import TranslationOptions, register  # type: ig
 from .models import (
     Characteristic,
     CharacteristicGroup,
-    TypeCharacteristic,
     Unit,
 )
 

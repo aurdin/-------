@@ -9,6 +9,7 @@ from .models import (
     SeriesFrameColor,
     TypeModelType,
     TypeExecution,
+    TypeCharacteristic,
 )
 
 
@@ -88,3 +89,18 @@ class TypeExecutionAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
         "type__typ_name",
         "execution__exc_name",
     )
+
+@admin.register(TypeCharacteristic)
+class TypeCharacteristicAdmin(DirectoryExportAdminMixin, admin.ModelAdmin):
+    list_display = (
+        "tch_type",
+        "tch_characteristic",
+        "tch_status",
+        "date_updated",
+    )
+
+    list_filter = (
+        "tch_type",
+        "tch_characteristic",
+        "tch_status",
+    )    

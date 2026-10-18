@@ -1,6 +1,7 @@
 """Модели связей между общими справочниками SmEl."""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from directory.characteristics.models import Characteristic
 
 
 # 1. Связь групп и типов
@@ -194,3 +195,46 @@ class TypeExecution(models.Model):
     def __str__(self):
         return f"{self.type} — {self.execution}"
 
+# 7. Связь типов и характеристик
+class TypeCharacteristic(models.Model):
+    tch_type = models.ForeignKey(
+        "common.Type",
+        on_delete=models.PROTECT,
+        related_name="type_characteristics",
+        verbose_name=_("Type"),
+    )
+    tch_characteristic = models.ForeignKey(
+        Characteristic,
+        on_delete=models.PROTECT,
+        related_name="type_characteristics",
+        verbose_name=_("Characteristic"),
+    )
+    tch_status = models.BooleanField(
+        _("Status"),
+        default=True,
+    )
+    date_created = models.DateTimeField(
+        _("Date created"),
+        auto_now_add=True,
+    )
+    date_updated = models.DateTimeField(
+        _("Date updated"),
+        auto_now=True,
+    )
+
+    class Meta:
+        db_table = "relations_type_characteristic"
+        ordering = ("tch_type", "tch_characteristic")
+        verbose_name = _("Type — characteristic relationship")
+        verbose_name_plural = _("Type — characteristic relationships")
+        db_table_comment = "Связь типов продукции и характеристик"
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=("tch_type", "tch_characteristic"),
+                name="unique_type_characteristic",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.tch_type} — {self.tch_characteristic}"
+    

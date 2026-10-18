@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from directory.forms import UniqueTranslatedNameForm
-from .models import Characteristic, CharacteristicGroup, Unit
+from .models import Characteristic, CharacteristicGroup, Unit, CharacteristicValue
+from django import forms
 
 class CharacteristicGroupForm(UniqueTranslatedNameForm):
     name_fields = ("chg_name_en", "chg_name_ru", "chg_name_uk")
@@ -26,4 +27,12 @@ class CharacteristicForm(UniqueTranslatedNameForm):
 
     class Meta:
         model = Characteristic
+        fields = "__all__"
+
+class CharacteristicValueForm(forms.ModelForm):
+    name_fields = ("cv_value_en", "cv_value_ru", "cv_value_uk")
+    duplicate_message = _("A characteristic value with this name already exists.")
+
+    class Meta:
+        model = CharacteristicValue
         fields = "__all__"

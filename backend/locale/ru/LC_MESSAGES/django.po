@@ -242,3 +242,12 @@ msgstr "Характеристика с таким названием уже с�
 
 msgid "An entry with this name already exists."
 msgstr "Запись с таким названием уже существует."
+
+msgid "Characteristic value"
+msgstr "Значение характеристики"
+
+msgid "Characteristic values"
+msgstr "Значения характеристик"
+
+msgid "Value"
+msgstr "Значение"
