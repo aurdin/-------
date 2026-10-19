@@ -4,6 +4,7 @@ from .models import (
     Characteristic,
     CharacteristicGroup,
     Unit,
+    CharacteristicValue,
 )
 
 @register(CharacteristicGroup)
@@ -25,4 +26,10 @@ class CharacteristicTranslationOptions(TranslationOptions):
     fields = (
         "chr_name",
         "chr_description",
+    )
+
+@register(CharacteristicValue)
+class CharacteristicValueTranslationOptions(TranslationOptions):
+    fields = (
+        "cv_description",
     )

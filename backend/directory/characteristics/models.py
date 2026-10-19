@@ -97,6 +97,8 @@ class Unit(models.Model):
     unt_symbol = models.CharField(
         _("Symbol"),
         max_length=20,
+        blank=True,
+        null=True,
     )
 
     unt_status = models.BooleanField(
@@ -252,6 +254,12 @@ class CharacteristicValue(models.Model):
     cv_value = models.CharField(
         _("Value"),
         max_length=255,
+    )
+
+    cv_description = models.TextField(
+        _("Description"),
+        blank=True,
+        null=True,
     )
 
     cv_status = models.BooleanField(
