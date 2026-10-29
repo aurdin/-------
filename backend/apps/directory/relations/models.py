@@ -6,10 +6,11 @@ from directory.characteristics.models import Characteristic
 
 # 1. Связь групп и типов
 class GroupType(models.Model):
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(_("Status"), default=True)
 
     group = models.ForeignKey(
         "common.Group",
+        verbose_name=_("Group"),
         on_delete=models.PROTECT,
         related_name="group_types",
     )
@@ -18,6 +19,7 @@ class GroupType(models.Model):
         "common.Type",
         on_delete=models.PROTECT,
         related_name="group_types",
+        verbose_name=_("Type"),
     )
 
     class Meta:
@@ -38,10 +40,11 @@ class GroupType(models.Model):
 
 # 2. Связь серии и типа
 class SeriesType(models.Model):
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(_("Status"), default=True)
 
     series = models.ForeignKey(
         "common.Series",
+        verbose_name=_("Series"),
         on_delete=models.PROTECT,
         related_name="series_types",
     )
@@ -50,6 +53,7 @@ class SeriesType(models.Model):
         "common.Type",
         on_delete=models.PROTECT,
         related_name="series_types",
+        verbose_name=_("Type"),
     )
 
     class Meta:
@@ -70,10 +74,11 @@ class SeriesType(models.Model):
 
 # 3. Цвета товаров серии
 class SeriesProductColor(models.Model):
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(_("Status"), default=True)
 
     series = models.ForeignKey(
         "common.Series",
+        verbose_name=_("Series"),
         on_delete=models.PROTECT,
         related_name="product_colors",
     )
@@ -82,6 +87,7 @@ class SeriesProductColor(models.Model):
         "common.Color",
         on_delete=models.PROTECT,
         related_name="product_series",
+        verbose_name=_("Color"),
     )
 
     class Meta:
@@ -102,10 +108,11 @@ class SeriesProductColor(models.Model):
 
 # 4. Цвета рамок серии
 class SeriesFrameColor(models.Model):
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(_("Status"), default=True)
 
     series = models.ForeignKey(
         "common.Series",
+        verbose_name=_("Series"),
         on_delete=models.PROTECT,
         related_name="frame_colors",
     )
@@ -114,6 +121,7 @@ class SeriesFrameColor(models.Model):
         "common.Color",
         on_delete=models.PROTECT,
         related_name="frame_series",
+        verbose_name=_("Color"),
     )
 
     class Meta:
@@ -134,10 +142,11 @@ class SeriesFrameColor(models.Model):
 
 # 5. Связь типов и моделей
 class TypeModelType(models.Model):
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(_("Status"), default=True)
 
     type_model = models.ForeignKey(
         "common.TypeModel",
+        verbose_name=_("Type model"),
         on_delete=models.PROTECT,
         related_name="type_links",
     )
@@ -146,6 +155,7 @@ class TypeModelType(models.Model):
         "common.Type",
         on_delete=models.PROTECT,
         related_name="model_links",
+        verbose_name=_("Type"),
     )
 
     class Meta:
@@ -166,10 +176,11 @@ class TypeModelType(models.Model):
 
 # 6. Связь типов и исполнений
 class TypeExecution(models.Model):
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(_("Status"), default=True)
 
     type = models.ForeignKey(
         "common.Type",
+        verbose_name=_("Type"),
         on_delete=models.PROTECT,
         related_name="execution_links",
     )
@@ -178,6 +189,7 @@ class TypeExecution(models.Model):
         "common.Execution",
         on_delete=models.PROTECT,
         related_name="type_links",
+        verbose_name=_("Execution"),
     )
 
     class Meta:

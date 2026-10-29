@@ -6,4 +6,6 @@ import config.admin_site  # noqa: F401
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('api/prices/', include('apps.prices.urls')),
 ]
+

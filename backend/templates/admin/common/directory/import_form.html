@@ -1,15 +1,33 @@
-```html
 {% extends "admin/base_site.html" %}
 {% load i18n %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
-
+    {% get_current_language as CURRENT_LANGUAGE %}
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <div>
-            {{ form.as_p }}
+        {% for error in form.file.errors %}
+            <ul class="errorlist"><li>{{ error }}</li></ul>
+        {% endfor %}
+
+        <div class="form-row">
+            {{ form.file.label_tag }}
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input
+                    type="file"
+                    name="{{ form.file.html_name }}"
+                    id="{{ form.file.id_for_label }}"
+                    accept=".xlsx,.xlsm"
+                    required
+                    style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"
+                >
+                <label for="{{ form.file.id_for_label }}" class="button">
+                    {% if CURRENT_LANGUAGE == "ru" %}Выберите файл{% elif CURRENT_LANGUAGE == "uk" %}Виберіть файл{% else %}Choose file{% endif %}
+                </label>
+                <span id="selected-file-name" aria-live="polite">
+                    {% if CURRENT_LANGUAGE == "ru" %}Файл не выбран{% elif CURRENT_LANGUAGE == "uk" %}Файл не вибрано{% else %}No file selected{% endif %}
+                </span>
+            </div>
         </div>
 
         <div class="submit-row">
@@ -20,5 +38,11 @@
             >
         </div>
     </form>
+
+    <script>
+        document.getElementById("{{ form.file.id_for_label }}").addEventListener("change", function () {
+            document.getElementById("selected-file-name").textContent =
+                this.files.length ? this.files[0].name : "{% if CURRENT_LANGUAGE == 'ru' %}Файл не выбран{% elif CURRENT_LANGUAGE == 'uk' %}Файл не вибрано{% else %}No file selected{% endif %}";
+        });
+    </script>
 {% endblock %}
-```

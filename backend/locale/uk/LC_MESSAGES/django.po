@@ -253,3 +253,263 @@ msgstr "Значення характеристик"
 
 msgid "Value"
 msgstr "Значення"
+
+msgid "Import %(model)s from Excel"
+msgstr "Імпорт %(model)s з Excel"
+
+msgid "Excel file"
+msgstr "Файл Excel"
+
+msgid "Import from Excel"
+msgstr "Імпорт з Excel"
+msgid "Base pricing"
+msgstr "Базове ціноутворення"
+
+msgid "Base price"
+msgstr "Базова ціна"
+
+msgid "Base prices"
+msgstr "Базові ціни"
+
+msgid "Article"
+msgstr "Артикул товару"
+
+msgid "Normalized article"
+msgstr "Нормалізований артикул"
+
+msgid "Base price (UAH)"
+msgstr "Базова ціна (грн)"
+
+msgid "Valid from"
+msgstr "Дата початку дії"
+
+msgid "Valid to"
+msgstr "Дата завершення дії"
+
+msgid "Created at"
+msgstr "Дата створення"
+
+msgid "Updated at"
+msgstr "Дата зміни"
+
+msgid "Created by"
+msgstr "Автор"
+
+msgid "Updated by"
+msgstr "Редактор"
+
+msgid "Export XLSX"
+msgstr "Експорт XLSX"
+
+msgid "Export CSV"
+msgstr "Експорт CSV"
+
+msgid "Import base prices from XLSX"
+msgstr "Імпорт базових цін з XLSX"
+
+msgid "Upload an XLSX workbook."
+msgstr "Завантажте книгу XLSX."
+
+msgid "Amount is required."
+msgstr "Ціна обов’язкова."
+
+msgid "Amount must be a valid number."
+msgstr "Укажіть коректну ціну."
+
+msgid "Amount must use either a decimal comma or a decimal point."
+msgstr "Використовуйте в ціні десяткову кому або крапку."
+
+msgid "Negative prices are not allowed."
+msgstr "Від’ємні ціни заборонені."
+
+msgid "Amount exceeds the supported precision."
+msgstr "Ціна перевищує допустиму точність."
+
+msgid "Amount may not have more than two decimal places."
+msgstr "У ціні допускається не більше двох знаків після коми."
+
+msgid "Article is required."
+msgstr "Артикул обов’язковий."
+
+msgid "The uploaded file is not a valid XLSX workbook."
+msgstr "Завантажено некоректний файл XLSX."
+
+msgid "The workbook is empty."
+msgstr "Книга не містить даних."
+
+msgid "Required columns are missing: article and amount."
+msgstr "У файлі мають бути стовпці article та amount."
+
+msgid "The workbook contains no data rows."
+msgstr "У книзі немає рядків із даними."
+
+msgid "Start date cannot be earlier than today."
+msgstr "Дата початку не може бути раніше за сьогодні."
+
+msgid "Duplicate article in rows %(rows)s."
+msgstr "Артикул повторюється в рядках %(rows)s."
+
+msgid "Article was not found in the product catalog."
+msgstr "Артикул не знайдено в каталозі товарів."
+
+msgid "Import preview"
+msgstr "Попередній перегляд імпорту"
+
+msgid "Total rows"
+msgstr "Усього рядків"
+
+msgid "Valid rows"
+msgstr "Коректні рядки"
+
+msgid "Rows with errors"
+msgstr "Рядки з помилками"
+
+msgid "Product catalog validation is unavailable; article existence was not checked."
+msgstr "Перевірка каталогу недоступна; наявність артикулу не перевірено."
+
+msgid "Duplicate articles"
+msgstr "Артикули, що повторюються"
+
+msgid "rows"
+msgstr "рядки"
+
+msgid "Duplicate articles cancel the entire import."
+msgstr "Артикули, що повторюються, скасовують імпорт усього файлу."
+
+msgid "Row"
+msgstr "Рядок"
+
+msgid "Result"
+msgstr "Результат"
+
+msgid "Will be added"
+msgstr "Буде додано"
+
+msgid "Select the same XLSX workbook again to confirm the import."
+msgstr "Щоб підтвердити імпорт, виберіть ту саму книгу XLSX ще раз."
+
+msgid "Confirm import"
+msgstr "Підтвердити імпорт"
+
+msgid "The preview expired or is invalid. Preview the workbook again."
+msgstr "Попередній перегляд застарів або недійсний. Перевірте файл знову."
+
+msgid "Select the same XLSX workbook that was previewed."
+msgstr "Виберіть ту саму книгу XLSX, яку перевіряли."
+
+msgid "The workbook can no longer be imported. Preview it again."
+msgstr "Цей файл більше не можна імпортувати. Перевірте його знову."
+
+msgid "Import complete: %(created)s added; %(skipped)s skipped."
+msgstr "Імпорт завершено: додано %(created)s, пропущено %(skipped)s."
+
+msgid "Preview import"
+msgstr "Перевірити імпорт"
+
+msgid "Back to prices"
+msgstr "Повернутися до цін"
+
+msgid "Preview again"
+msgstr "Перевірити файл знову"
+
+msgid "CSV file"
+msgstr "Файл CSV"
+
+msgid "Upload a CSV file."
+msgstr "Завантажте файл CSV."
+
+msgid "Import base prices from CSV"
+msgstr "Імпорт базових цін з CSV"
+
+msgid "Import from CSV"
+msgstr "Імпорт із CSV"
+
+msgid "The uploaded file is not a valid CSV file."
+msgstr "Завантажено некоректний файл CSV."
+
+msgid "The input file is empty."
+msgstr "Файл не містить даних."
+
+msgid "The input file contains no data rows."
+msgstr "У файлі немає рядків із даними."
+
+msgid "Select the same file again to confirm the import."
+msgstr "Щоб підтвердити імпорт, виберіть той самий файл ще раз."
+
+msgid "Select the same file that was previewed."
+msgstr "Виберіть той самий файл, який перевіряли."
+
+msgid "The preview expired or is invalid. Preview the file again."
+msgstr "Попередній перегляд застарів або недійсний. Перевірте файл знову."
+
+msgid "The file can no longer be imported. Preview it again."
+msgstr "Цей файл більше не можна імпортувати. Перевірте його знову."
+
+msgid "Unsupported import file format."
+msgstr "Непідтримуваний формат файлу імпорту."
+
+msgid "Promotion"
+msgstr "Акція"
+
+msgid "Promotions"
+msgstr "Акції"
+
+msgid "Promotion target"
+msgstr "Ціль акції"
+
+msgid "Promotion targets"
+msgstr "Цілі акції"
+
+msgid "Choose exactly one promotion target: article, category, group, type, or color."
+msgstr "Виберіть рівно одну ціль акції: артикул, категорію, групу, тип або колір."
+
+msgid "Discount percent"
+msgstr "Знижка, %"
+
+msgid "Discount percent is required."
+msgstr "Укажіть розмір знижки у відсотках."
+
+msgid "Discount must be greater than 0 and no more than 100 percent."
+msgstr "Знижка має бути більшою за 0% і не перевищувати 100%."
+
+msgid "Order volume discount schedule"
+msgstr "Набір знижок від суми замовлення"
+
+msgid "Order volume discount schedules"
+msgstr "Набори знижок від суми замовлення"
+
+msgid "Order discount tier"
+msgstr "Рівень знижки на замовлення"
+
+msgid "Order discount tiers"
+msgstr "Рівні знижок на замовлення"
+
+msgid "Minimum order amount (UAH)"
+msgstr "Мінімальна сума замовлення, грн"
+
+msgid "Upper order amount (exclusive, UAH)"
+msgstr "Верхня межа суми замовлення (не включно), грн"
+
+msgid "The minimum order amount cannot be negative."
+msgstr "Мінімальна сума замовлення не може бути від’ємною."
+
+msgid "The upper order amount must be greater than the minimum."
+msgstr "Верхня межа суми має бути більшою за мінімальну."
+
+msgid "The end date must not be earlier than the start date."
+msgstr "Дата завершення не може бути раніше за дату початку."
+
+msgid "Order discount tiers in one schedule must not overlap."
+msgstr "Рівні знижки в одному наборі не мають перетинатися."
+
+msgid "Discounts apply"
+msgstr "Знижки діють"
+
+msgid "Other discounts apply"
+msgstr "Інші знижки діють"
+
+msgid "Discount"
+msgstr "Знижка"
+
+msgid "Discounts"
+msgstr "Знижки"

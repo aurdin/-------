@@ -1,7 +1,8 @@
 from django.apps import AppConfig
+from django.utils.translation import gettext_lazy as _
 
 
 class PricesConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.prices'
-
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.prices"
+    verbose_name = _("Base pricing")
