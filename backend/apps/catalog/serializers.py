@@ -1,28 +1,22 @@
 from rest_framework import serializers
+from django.utils.translation import get_language
 
 from apps.catalog.models import (
     Product,
     ProductCharacteristic,
-    ProductImage,
 )
-from apps.catalog.services.product_name import ProductNameService
+from apps.catalog.services.naming import ProductNameService
 
 
 class ProductCharacteristicSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
-        source="characteristic.name",
+        source="characteristic.chr_name",
         read_only=True,
     )
 
-    value_type = serializers.CharField(
-        source="characteristic.value_type",
-        read_only=True,
-    )
+    value_type = serializers.CharField(read_only=True)
 
-    unit = serializers.CharField(
-        source="characteristic.unit",
-        read_only=True,
-    )
+    unit = serializers.CharField(source="characteristic.chr_unit.unt_name", read_only=True, allow_null=True)
 
     value = serializers.SerializerMethodField()
 
@@ -38,46 +32,42 @@ class ProductCharacteristicSerializer(serializers.ModelSerializer):
         )
 
     def get_value(self, obj):
-        characteristic = obj.characteristic
-
-        if characteristic.value_type == "text":
+        if obj.value_type == "text":
             return obj.value_text
 
-        if characteristic.value_type == "number":
+        if obj.value_type == "number":
             return obj.value_number
 
-        if characteristic.value_type == "boolean":
+        if obj.value_type == "boolean":
             return obj.value_boolean
 
-        if characteristic.value_type == "reference":
+        if obj.value_type == "reference":
             if obj.value_reference_id:
-                return obj.value_reference.value
+                return obj.value_reference.cv_value
             return None
 
         return None
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductImage
-        fields = (
-            "id",
-            "image",
-            "status",
-        )
+class ProductImageSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    image = serializers.CharField()
+    status = serializers.BooleanField()
 
 
 
 class ProductSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
+    article = serializers.CharField(source="prd_article", read_only=True)
 
     category = serializers.SerializerMethodField()
     group = serializers.SerializerMethodField()
     brand = serializers.SerializerMethodField()
     series = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
-    type_model = serializers.SerializerMethodField()
+    model = serializers.SerializerMethodField()
     execution = serializers.SerializerMethodField()
+    protection_degree = serializers.SerializerMethodField()
 
     color = serializers.SerializerMethodField()
 
@@ -86,23 +76,24 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
-    images = ProductImageSerializer(
-        many=True,
-        read_only=True,
-    )
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = (
             "id",
+            "prd_code",
             "article",
             "name",
+            "prd_description",
+            "prd_notes",
+            "date_created",
             "category",
             "group",
             "brand",
             "series",
             "type",
-            "type_model",
+            "model",
             "execution",
             "protection_degree",
             "color",
@@ -115,7 +106,17 @@ class ProductSerializer(serializers.ModelSerializer):
         )
 
     def get_name(self, obj):
-        return ProductNameService.build(obj)
+        language = (get_language() or "ru").split("-", 1)[0]
+        if language not in ProductNameService.LANGUAGES:
+            language = "ru"
+        return getattr(obj, f"prd_name_{language}", None) or ProductNameService.build(obj, language)
+
+    def get_images(self, obj):
+        return [
+            {"id": index, "image": getattr(obj, field).url, "status": True}
+            for index, field in enumerate(("product_image_1", "product_image_2", "product_image_3"), start=1)
+            if getattr(obj, field)
+        ]
 
     @staticmethod
     def _reference(obj):
@@ -124,7 +125,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
         return {
             "id": obj.id,
-            "name": obj.name,
+            "name": str(obj),
         }
 
     def get_category(self, obj):
@@ -142,11 +143,14 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_type(self, obj):
         return self._reference(obj.type)
 
-    def get_type_model(self, obj):
+    def get_model(self, obj):
         return self._reference(obj.type_model)
 
     def get_execution(self, obj):
         return self._reference(obj.execution)
+
+    def get_protection_degree(self, obj):
+        return obj.protection_degree.ptd_name if obj.protection_degree_id else None
 
     def get_color(self, obj):
         return self._reference(obj.color)
@@ -154,7 +158,10 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class CatalogFilterItemSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    name = serializers.CharField()
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return str(obj)
 
 
 class CatalogFilterCharacteristicValueSerializer(serializers.Serializer):

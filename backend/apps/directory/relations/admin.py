@@ -1,6 +1,6 @@
 """Административный интерфейс для справочников связей SmEl."""
 from django.contrib import admin
-from directory.services.export_admin import DirectoryExportAdminMixin
+from apps.directory.services.export_admin import DirectoryExportAdminMixin
 
 from .models import (
     GroupType,

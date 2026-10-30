@@ -22,8 +22,12 @@ export interface ProductImage {
 
 export interface Product {
     id: number
+    prd_code: string
     article: string
     name: string
+    prd_description: string
+    prd_notes: string
+    date_created: string
 
     category: CatalogReference | null
     group: CatalogReference | null

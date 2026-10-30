@@ -3,8 +3,8 @@ from django.http import HttpResponse  # noqa: F401
 from django.urls import path  # noqa: F401
 from modeltranslation.admin import TranslationAdmin  # type: ignore
 from django.utils.translation import gettext_lazy as _  # noqa: F401
-from directory.services.export import DirectoryExportService  # noqa: F401
-from directory.services.export_admin import DirectoryExportAdminMixin
+from apps.directory.services.export import DirectoryExportService  # noqa: F401
+from apps.directory.services.export_admin import DirectoryExportAdminMixin
 from .forms import (
     BrandForm,
     CategoryForm,

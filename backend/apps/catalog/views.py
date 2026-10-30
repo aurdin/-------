@@ -3,6 +3,10 @@ from rest_framework import generics
 from rest_framework.response import Response
 
 from apps.catalog.models import (
+    Product,
+    ProductCharacteristic,
+)
+from apps.directory.common.models import (
     Category,
     Group,
     Brand,
@@ -11,10 +15,8 @@ from apps.catalog.models import (
     TypeModel,
     Execution,
     Color,
-    Product,
-    Characteristic,
-    ProductCharacteristic,
 )
+from apps.directory.characteristics.models import Characteristic
 
 from apps.catalog.serializers import (
     ProductSerializer,
@@ -38,11 +40,12 @@ class ProductListView(generics.ListAPIView):
                 "type_model",
                 "execution",
                 "color",
+                "protection_degree",
+                "supply_variant",
             )
             .prefetch_related(
                 "characteristics__characteristic",
                 "characteristics__value_reference",
-                "images",
             )
             .distinct()
         )
@@ -53,23 +56,25 @@ class ProductListView(generics.ListAPIView):
         # Search has priority over all filters.
         if search:
             return queryset.filter(
-                Q(article__icontains=search)
-                | Q(type__name__icontains=search)
-                | Q(model__name__icontains=search)
-                | Q(execution__name__icontains=search)
-                | Q(brand__name__icontains=search)
-                | Q(series__name__icontains=search)
-                | Q(category__name__icontains=search)
-                | Q(group__name__icontains=search)
-                | Q(color__name__icontains=search)
-                | Q(protection_degree__icontains=search)
+                Q(prd_article__icontains=search)
+                | Q(prd_code__icontains=search)
+                | Q(prd_name__icontains=search)
+                | Q(type__typ_name__icontains=search)
+                | Q(type_model__mdl_name__icontains=search)
+                | Q(execution__exc_name__icontains=search)
+                | Q(brand__brd_name__icontains=search)
+                | Q(series__ser_name__icontains=search)
+                | Q(category__cat_name__icontains=search)
+                | Q(group__grp_name__icontains=search)
+                | Q(color__clr_name__icontains=search)
+                | Q(protection_degree__ptd_name__icontains=search)
                 | Q(barcode__icontains=search)
                 | Q(packaging__icontains=search)
-                | Q(manufacturer_name__icontains=search)
-                | Q(manufacturer_description__icontains=search)
-                | Q(characteristics__characteristic__name__icontains=search)
+                | Q(prd_description__icontains=search)
+                | Q(prd_notes__icontains=search)
+                | Q(characteristics__characteristic__chr_name__icontains=search)
                 | Q(characteristics__value_text__icontains=search)
-                | Q(characteristics__value_reference__value__icontains=search)
+                | Q(characteristics__value_reference__cv_value__icontains=search)
             )
 
         filters = {
@@ -78,11 +83,11 @@ class ProductListView(generics.ListAPIView):
             "brand": "brand_id",
             "series": "series_id",
             "type": "type_id",
-            "type_model": "type_model_id",
             "execution": "execution_id",
             "color": "color_id",
-            "protection_degree": "protection_degree",
-            "article": "article",
+            "protection_degree": "protection_degree_id",
+            "article": "prd_article",
+            "type_model": "type_model_id",
         }
 
         for parameter, field in filters.items():
@@ -113,14 +118,19 @@ class ProductListView(generics.ListAPIView):
                 "characteristics__characteristic_id": characteristic_id,
                 "characteristics__status": True,
             }
+            value_type = ProductCharacteristic.objects.filter(
+                product__in=queryset,
+                characteristic_id=characteristic_id,
+                status=True,
+            ).values_list("value_type", flat=True).first()
 
-            if characteristic.value_type == Characteristic.VALUE_TYPE_NUMBER:
+            if value_type == "number":
                 characteristic_filter["characteristics__value_number"] = value
 
-            elif characteristic.value_type == Characteristic.VALUE_TYPE_TEXT:
+            elif value_type == "text":
                 characteristic_filter["characteristics__value_text"] = value
 
-            elif characteristic.value_type == Characteristic.VALUE_TYPE_BOOLEAN:
+            elif value_type == "boolean":
                 if value.lower() not in ("true", "false"):
                     queryset = queryset.none()
                     continue
@@ -129,8 +139,8 @@ class ProductListView(generics.ListAPIView):
                     value.lower() == "true"
                 )
 
-            elif characteristic.value_type == Characteristic.VALUE_TYPE_REFERENCE:
-                characteristic_filter["characteristics__value_reference__value"] = value
+            elif value_type == "reference":
+                characteristic_filter["characteristics__value_reference__cv_value"] = value
 
             else:
                 queryset = queryset.none()
@@ -176,11 +186,12 @@ class ProductDetailView(generics.RetrieveAPIView):
                 "type_model",
                 "execution",
                 "color",
+                "protection_degree",
+                "supply_variant",
             )
             .prefetch_related(
                 "characteristics__characteristic",
                 "characteristics__value_reference",
-                "images",
             )
         )
 
@@ -194,7 +205,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 products__in=active_products,
             )
             .distinct()
-            .order_by("name")
+            .order_by("cat_name")
         )
 
         groups = (
@@ -202,7 +213,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 products__in=active_products,
             )
             .distinct()
-            .order_by("name")
+            .order_by("grp_name")
         )
 
         brands = (
@@ -210,7 +221,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 products__in=active_products,
             )
             .distinct()
-            .order_by("name")
+            .order_by("brd_name")
         )
 
         series = (
@@ -218,7 +229,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 products__in=active_products,
             )
             .distinct()
-            .order_by("name")
+            .order_by("ser_name")
         )
 
         types = (
@@ -226,7 +237,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 products__in=active_products,
             )
             .distinct()
-            .order_by("name")
+            .order_by("typ_name")
         )
 
         models = (
@@ -234,7 +245,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 products__in=active_products,
             )
             .distinct()
-            .order_by("name")
+            .order_by("mdl_name")
         )
 
         executions = (
@@ -242,7 +253,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 products__in=active_products,
             )
             .distinct()
-            .order_by("name")
+            .order_by("exc_name")
         )
 
         colors = (
@@ -250,7 +261,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 products__in=active_products,
             )
             .distinct()
-            .order_by("name")
+            .order_by("clr_name")
         )
         # -----------------------------------
 
@@ -260,7 +271,7 @@ class CatalogFiltersView(generics.GenericAPIView):
                 product_characteristics__status=True,
             )
             .distinct()
-            .order_by("name")
+            .order_by("chr_name")
         )
 
         characteristic_data = []
@@ -273,34 +284,35 @@ class CatalogFiltersView(generics.GenericAPIView):
             ).select_related("value_reference")
 
             values = set()
+            value_type = product_characteristics.values_list("value_type", flat=True).first()
 
             for product_characteristic in product_characteristics:
-                if characteristic.value_type == Characteristic.VALUE_TYPE_NUMBER:
+                if value_type == "number":
                     value = product_characteristic.value_number
                     if value is not None:
                         values.add(format(value, "f").rstrip("0").rstrip(".") or "0")
 
-                elif characteristic.value_type == Characteristic.VALUE_TYPE_TEXT:
+                elif value_type == "text":
                     value = product_characteristic.value_text
                     if value is not None and value != "":
                         values.add(value)
 
-                elif characteristic.value_type == Characteristic.VALUE_TYPE_BOOLEAN:
+                elif value_type == "boolean":
                     value = product_characteristic.value_boolean
                     if value is not None:
                         values.add(str(value).lower())
 
-                elif characteristic.value_type == Characteristic.VALUE_TYPE_REFERENCE:
+                elif value_type == "reference":
                     value_reference = product_characteristic.value_reference
                     if value_reference is not None:
-                        values.add(value_reference.value)
+                        values.add(value_reference.cv_value)
 
             characteristic_data.append(
                 {
                     "id": characteristic.id,
-                    "name": characteristic.name,
-                    "value_type": characteristic.value_type,
-                    "unit": characteristic.unit,
+                    "name": characteristic.chr_name,
+                    "value_type": value_type or "text",
+                    "unit": characteristic.chr_unit.unt_name if characteristic.chr_unit_id else None,
                     "values": [{"value": value} for value in sorted(values)],
                 }
             )

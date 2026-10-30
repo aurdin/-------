@@ -1,6 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
-from directory.forms import UniqueTranslatedNameForm
+from apps.directory.forms import UniqueTranslatedNameForm
 
 from .models import (
     Brand,

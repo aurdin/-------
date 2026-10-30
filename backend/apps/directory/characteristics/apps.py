@@ -4,5 +4,5 @@ from django.utils.translation import gettext_lazy as _
 
 class CharacteristicsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "directory.characteristics"
+    name = "apps.directory.characteristics"
     verbose_name = _("Characteristics")

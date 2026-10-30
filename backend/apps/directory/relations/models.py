@@ -1,7 +1,7 @@
 """Модели связей между общими справочниками SmEl."""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from directory.characteristics.models import Characteristic
+from apps.directory.characteristics.models import Characteristic
 
 
 # 1. Связь групп и типов

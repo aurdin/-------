@@ -58,6 +58,7 @@ class TypeTranslationOptions(TranslationOptions):
 @register(ProtectionDegree)
 class ProtectionDegreeTranslationOptions(TranslationOptions):
     fields = (
+       "ptd_name",
        "ptd_description",
     )    
 
@@ -75,4 +76,4 @@ class ExecutionTranslationOptions(TranslationOptions):
 
 @register(SupplyVariant)
 class SupplyVariantTranslationOptions(TranslationOptions):
-    fields = ("sup_name", "sup_description")       
+    fields = ("sup_name", "sup_description")

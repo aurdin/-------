@@ -98,3 +98,7 @@ class ProductNameService:
             result.append(value)
 
         return result
+
+
+# Keep the established import path while the rule-based implementation lives separately.
+from apps.catalog.services.naming import ProductNameService  # noqa: E402,F401,F811

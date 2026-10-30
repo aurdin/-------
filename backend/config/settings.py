@@ -39,9 +39,9 @@ INSTALLED_APPS = [
     "apps.prices",
     "apps.accounts",
     "corsheaders",
-    "directory.common",
-    "directory.relations",
-    "directory.characteristics",
+    "apps.directory.common",
+    "apps.directory.relations",
+    "apps.directory.characteristics",
 ]
 
 

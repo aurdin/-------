@@ -1,7 +1,7 @@
 from django.contrib import admin
 from modeltranslation.admin import TranslationAdmin  # type: ignore
 
-from directory.services.export_admin import DirectoryExportAdminMixin
+from apps.directory.services.export_admin import DirectoryExportAdminMixin
 
 from .forms import (
     CharacteristicForm,
