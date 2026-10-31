@@ -16,7 +16,7 @@ class ProductCharacteristicSerializer(serializers.ModelSerializer):
 
     value_type = serializers.CharField(read_only=True)
 
-    unit = serializers.CharField(source="characteristic.chr_unit.unt_name", read_only=True, allow_null=True)
+    unit = serializers.SerializerMethodField()
 
     value = serializers.SerializerMethodField()
 
@@ -47,6 +47,10 @@ class ProductCharacteristicSerializer(serializers.ModelSerializer):
             return None
 
         return None
+
+    def get_unit(self, obj):
+        unit = obj.unit or obj.characteristic.chr_unit
+        return unit.unt_name if unit else None
 
 
 class ProductImageSerializer(serializers.Serializer):

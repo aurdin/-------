@@ -1,4 +1,4 @@
-"""Build localized product names from the rule configured for each type."""
+"""Build localized product names from the rule configured for each group."""
 
 from decimal import Decimal
 
@@ -8,7 +8,7 @@ class ProductNameService:
 
     @classmethod
     def build(cls, product, language="ru"):
-        rule = getattr(product.type, "product_name_rule", None) if product.type_id else None
+        rule = getattr(product.group, "product_name_rule", None) if product.group_id else None
         if rule is None:
             return cls.NO_NAME
 
@@ -17,7 +17,11 @@ class ProductNameService:
         if not configured_components:
             return cls.NO_NAME
         for item in configured_components:
-            value = cls.component_value(product, item.component, language)
+            value = (
+                cls.characteristic_value(product, item.characteristic_id, language)
+                if item.characteristic_id
+                else cls.component_value(product, item.component, language)
+            )
             if value:
                 parts.append(value.strip())
         return " ".join(part for part in parts if part)
@@ -45,8 +49,6 @@ class ProductNameService:
             Component.COMPONENT_COLOR: ("color", "clr_name"),
             Component.COMPONENT_SUPPLY: ("supply_variant", "sup_name"),
         }
-        if component == Component.COMPONENT_CHARACTERISTICS:
-            return " ".join(cls.characteristic_values(product, language))
         relation = fields.get(component)
         if relation is None:
             return ""
@@ -62,13 +64,13 @@ class ProductNameService:
     def characteristic_values(cls, product, language):
         values = []
         rows = product.characteristics.filter(status=True).select_related(
-            "characteristic__chr_unit", "value_reference"
+            "characteristic__chr_unit", "unit", "value_reference"
         ).order_by("id")
         for item in rows:
             if item.value_type == "text":
                 value = item.value_text
             elif item.value_type == "number" and item.value_number is not None:
-                value = format(Decimal(item.value_number), "f").rstrip("0").rstrip(".") or "0"
+                value = format(Decimal(item.value_number).normalize(), "f")
             elif item.value_type == "boolean" and item.value_boolean is not None:
                 value = {
                     "en": "Yes" if item.value_boolean else "No",
@@ -82,6 +84,39 @@ class ProductNameService:
             value = str(value).strip() if value is not None else ""
             if not value:
                 continue
-            unit = cls.translated(item.characteristic.chr_unit, "unt_name", language)
+            unit = cls.translated(item.unit or item.characteristic.chr_unit, "unt_symbol", language)
             values.append(f"{value} {unit}".strip() if unit else value)
         return values
+
+    @classmethod
+    def characteristic_value(cls, product, characteristic_id, language):
+        if not product.pk:
+            return ""
+
+        item = product.characteristics.filter(
+            characteristic_id=characteristic_id, status=True
+        ).select_related("characteristic__chr_unit", "unit", "value_reference").first()
+        if item is None:
+            return ""
+        value = cls.characteristic_values_for_item(item, language)
+        return value
+
+    @classmethod
+    def characteristic_values_for_item(cls, item, language):
+        if item.value_type == "text":
+            value = item.value_text
+        elif item.value_type == "number" and item.value_number is not None:
+            value = format(Decimal(item.value_number).normalize(), "f")
+        elif item.value_type == "boolean" and item.value_boolean is not None:
+            value = {"en": "Yes", "ru": "Да", "uk": "Так" if item.value_boolean else "Ні"}[language]
+        elif item.value_type == "reference" and item.value_reference_id:
+            value = cls.translated(item.value_reference, "cv_value", language)
+        else:
+            value = ""
+        value = str(value).strip() if value is not None else ""
+        if not value:
+            return ""
+        unit = cls.translated(
+            item.unit or item.characteristic.chr_unit, "unt_symbol", language
+        )
+        return f"{value} {unit}".strip() if unit else value

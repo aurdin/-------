@@ -154,6 +154,17 @@ class Unit(models.Model):
 
 # Справочник характеристик продукции
 class Characteristic(models.Model):
+    VALUE_TYPE_TEXT = "text"
+    VALUE_TYPE_NUMBER = "number"
+    VALUE_TYPE_BOOLEAN = "boolean"
+    VALUE_TYPE_REFERENCE = "reference"
+    VALUE_TYPE_CHOICES = (
+        (VALUE_TYPE_TEXT, _("Text")),
+        (VALUE_TYPE_NUMBER, _("Number")),
+        (VALUE_TYPE_BOOLEAN, _("Boolean")),
+        (VALUE_TYPE_REFERENCE, _("Reference")),
+    )
+
     chr_code = models.CharField(
         _("Code"),
         max_length=20,
@@ -183,6 +194,12 @@ class Characteristic(models.Model):
         verbose_name=_("Unit"),
         null=True,
         blank=True,
+    )
+    chr_value_type = models.CharField(
+        _("Value type"),
+        max_length=20,
+        choices=VALUE_TYPE_CHOICES,
+        default=VALUE_TYPE_TEXT,
     )
     chr_status = models.BooleanField(
         _("Status"),

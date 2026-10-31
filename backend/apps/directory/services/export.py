@@ -67,7 +67,7 @@ class DirectoryExportService:
                 {
                     "header": field.name,
                     "field": field.name,
-                    "type": "field",
+                    "type": "file" if isinstance(field, models.FileField) else "field",
                 }
             )
 
@@ -92,6 +92,9 @@ class DirectoryExportService:
             )
 
         value = getattr(obj, field_name, None)
+
+        if field_type == "file":
+            return value.name if value and value.name else None
 
         if isinstance(value, datetime) and value.tzinfo is not None:
             return value.replace(tzinfo=None)

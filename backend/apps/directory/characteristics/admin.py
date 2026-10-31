@@ -77,12 +77,14 @@ class CharacteristicAdmin(DirectoryExportAdminMixin, TranslationAdmin):
         "chr_name",
         "chr_group",
         "chr_unit",
+        "chr_value_type",
         "chr_status",
         "date_updated",
     )
 
     list_filter = (
         "chr_group",
+        "chr_value_type",
         "chr_status",
     )
 

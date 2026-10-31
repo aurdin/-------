@@ -251,6 +251,114 @@ msgstr "Значення характеристики"
 msgid "Characteristic values"
 msgstr "Значення характеристик"
 
+msgid "Product name rule"
+msgstr "Правило формування назви"
+
+msgid "Product name rules"
+msgstr "Правила формування назви"
+
+msgid "Product name rule item"
+msgstr "Елемент правила назви"
+
+msgid "Product name rule items"
+msgstr "Елементи правила назви"
+
+msgid "Product"
+msgstr "Товар"
+
+msgid "Products"
+msgstr "Товари"
+
+msgid "Product classification"
+msgstr "Класифікація товару"
+
+msgid "Product characteristics"
+msgstr "Характеристики товару"
+
+msgid "Product characteristic"
+msgstr "Характеристика товару"
+
+msgid "Product photos"
+msgstr "Фотографії товару"
+
+msgid "Details"
+msgstr "Додаткова інформація"
+
+msgid "Notes"
+msgstr "Примітки"
+
+msgid "Product photo 1"
+msgstr "Фотографія товару 1"
+
+msgid "Product photo 2"
+msgstr "Фотографія товару 2"
+
+msgid "Product photo 3"
+msgstr "Фотографія товару 3"
+
+msgid "Packaging"
+msgstr "Пакування"
+
+msgid "Sales unit"
+msgstr "Одиниця продажу"
+
+msgid "Barcode"
+msgstr "Штрихкод"
+
+msgid "Value type"
+msgstr "Тип значення"
+
+msgid "Text value"
+msgstr "Текстове значення"
+
+msgid "Number value"
+msgstr "Числове значення"
+
+msgid "Boolean value"
+msgstr "Логічне значення"
+
+msgid "Reference value"
+msgstr "Значення довідника"
+
+msgid "Text"
+msgstr "Текст"
+
+msgid "Number"
+msgstr "Число"
+
+msgid "Boolean"
+msgstr "Логічне значення"
+
+msgid "Reference"
+msgstr "Значення з довідника"
+
+msgid "The value type cannot be changed while products use this characteristic."
+msgstr "Не можна змінити тип значення, поки характеристика використовується в товарах."
+
+msgid "Unsupported characteristic value type."
+msgstr "Непідтримуваний тип значення характеристики."
+
+msgid "Select a value from the selected characteristic's values."
+msgstr "Виберіть значення зі списку значень вибраної характеристики."
+
+msgid "The selected value must be a number for this characteristic."
+msgstr "Для цієї характеристики виберіть числове значення."
+
+msgid "The selected value must represent true or false for this characteristic."
+msgstr "Для цієї характеристики виберіть значення, що відповідає «так» або «ні»."
+
+msgid "Position"
+msgstr "Позиція"
+
+msgid "Component"
+msgstr "Компонент"
+
+msgid "Model"
+msgstr "Модель"
+
+msgid "Select either a standard component or a characteristic."
+msgstr "Виберіть компонент або характеристику."
+
 msgid "Value"
 msgstr "Значення"
 
@@ -513,3 +621,9 @@ msgstr "Знижка"
 
 msgid "Discounts"
 msgstr "Знижки"
+
+msgid "Copy selected products"
+msgstr "Копіювати вибрані товари"
+
+msgid "Created %(count)s product copies."
+msgstr "Створено копій товарів: %(count)s."

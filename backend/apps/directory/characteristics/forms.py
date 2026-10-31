@@ -29,6 +29,27 @@ class CharacteristicForm(UniqueTranslatedNameForm):
         model = Characteristic
         fields = "__all__"
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.instance.pk:
+            return cleaned_data
+
+        new_value_type = cleaned_data.get("chr_value_type")
+        old_value_type = Characteristic.objects.filter(pk=self.instance.pk).values_list(
+            "chr_value_type", flat=True
+        ).first()
+        if new_value_type != old_value_type:
+            from apps.catalog.models import ProductCharacteristic
+
+            if ProductCharacteristic.objects.filter(
+                characteristic_id=self.instance.pk
+            ).exists():
+                self.add_error(
+                    "chr_value_type",
+                    _("The value type cannot be changed while products use this characteristic."),
+                )
+        return cleaned_data
+
 class CharacteristicValueForm(forms.ModelForm):
     name_fields = ("cv_value_en", "cv_value_ru", "cv_value_uk")
     duplicate_message = _("A characteristic value with this name already exists.")

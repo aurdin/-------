@@ -9,3 +9,4 @@ class CatalogConfig(AppConfig):
 
     def ready(self):
         from . import translation  # noqa: F401
+        from . import signals  # noqa: F401
